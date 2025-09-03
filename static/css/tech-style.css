@@ -16,9 +16,9 @@
     --tech-accent-yellow: #f59e0b;
     
     /* 文字色彩 */
-    --tech-text-primary: #ffffff;
-    --tech-text-secondary: #94a3b8;
-    --tech-text-muted: #64748b;
+    --tech-text-primary: #000000;
+    --tech-text-secondary: #000000;
+    --tech-text-muted: #000000;
     
     /* 边框和分割线 */
     --tech-border: rgba(148, 163, 184, 0.1);
