@@ -444,7 +444,35 @@
 
         const initCharts = () => {
             // 使用主题切换器提供的主题
-            const techTheme = window.ThemeSwitcher ? window.ThemeSwitcher.getEChartsTheme() : {};
+            
+            const techTheme = {
+                color: [
+                    '#0ea5e9', '#8b5cf6', '#10b981', '#f59e0b', '#f43f5e',
+                    '#3b82f6', '#a855f7', '#14b8a6', '#eab308', '#ec4899'
+                ],
+                backgroundColor: 'transparent',
+                textStyle: { color: '#000000' },
+                title: { textStyle: { color: '#000000' } },
+                legend: { textStyle: { color: '#000000' } },
+                tooltip: {
+                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                    borderColor: 'rgba(203, 213, 225, 0.7)',
+                    textStyle: { color: '#000000' }
+                },
+                grid: { borderColor: 'rgba(203, 213, 225, 0.3)' },
+                categoryAxis: {
+                    axisLine: { lineStyle: { color: 'rgba(203, 213, 225, 0.7)' } },
+                    axisTick: { lineStyle: { color: 'rgba(203, 213, 225, 0.7)' } },
+                    axisLabel: { color: '#000000' },
+                    splitLine: { lineStyle: { color: ['rgba(203, 213, 225, 0.3)'] } }
+                },
+                valueAxis: {
+                    axisLine: { lineStyle: { color: 'rgba(203, 213, 225, 0.7)' } },
+                    axisTick: { lineStyle: { color: 'rgba(203, 213, 225, 0.7)' } },
+                    axisLabel: { color: '#000000' },
+                    splitLine: { lineStyle: { color: ['rgba(203, 213, 225, 0.3)'] } }
+                }
+            };
 
             // 1. 雷达图
             const radarChartDom = document.getElementById('radar-chart');
@@ -700,11 +728,11 @@
         initCharts();
 
         // 监听主题变化事件，重新初始化图表
-        window.addEventListener('themeChanged', (e) => {
-            setTimeout(() => {
-                initCharts();
-            }, 100);
-        });
+        // window.addEventListener('themeChanged', (e) => {
+        //     setTimeout(() => {
+        //         initCharts();
+        //     }, 100);
+        // });
     });
     </script>
 </body>
