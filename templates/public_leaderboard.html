@@ -91,14 +91,14 @@
         }
         
         .model-link {
-            color: var(--tech-accent-cyan);
+            color: #000000;
             text-decoration: none;
             transition: var(--tech-transition);
             position: relative;
         }
         
         .model-link:hover {
-            color: var(--tech-accent-purple);
+            color: #808080;
             text-shadow: 0 0 10px currentColor;
         }
         
@@ -199,7 +199,7 @@
     <header class="tech-header">
         <div class="tech-container">
             <h1 class="neon-text">AI模型综合能力评估系统</h1>
-            <p class="lead">下一代人工智能模型性能基准测试平台</p>
+            <!-- <p class="lead">下一代人工智能模型性能基准测试平台</p> -->
         </div>
     </header>
 
@@ -246,7 +246,7 @@
         <!-- 详细数据表 -->
         <div class="tech-card">
             <h3 class="tech-card-title">
-                <i class="bi bi-table neon-glow" style="color: var(--tech-accent-yellow);"></i>
+                <!-- <i class="bi bi-table neon-glow" style="color: var(--tech-accent-yellow);"></i> -->
                 模型评估详细数据
             </h3>
             <div style="overflow-x: auto;">
@@ -266,7 +266,7 @@
                         {% for item in leaderboard %}
                         <tr>
                             <td style="text-align: center;">
-                                <span class="rank-badge {% if loop.index <= 3 %}rank-{{ loop.index }}{% else %}rank-other{% endif %}">
+                                <span class="rank-badge rank-other">
                                     {{ loop.index }}
                                 </span>
                             </td>
@@ -289,10 +289,10 @@
                             {% for dim in l1_dimensions %}
                             <td style="text-align: center;">
                                 {% if item.ranks.get(dim.id, '-') != '-' %}
-                                    <span class="data-label">
+                                    <!-- <span class="data-label"> -->
                                         <!-- <span class="data-label-icon" style="background: {% if item.ranks[dim.id] == 1 %}var(--tech-accent-green){% elif item.ranks[dim.id] <= 3 %}var(--tech-accent-yellow){% else %}var(--tech-accent-cyan){% endif %};"></span> -->
-                                        <span style="font-weight: 600; color: var(--tech-accent-cyan);">{{ item.ranks[dim.id] }}</span>
-                                    </span>
+                                    <span style="font-weight: 600; color: #000000">{{ item.ranks[dim.id] }}</span>
+                                    <!-- </span> -->
                                 {% else %}
                                     <span style="color: var(--tech-text-muted);">-</span>
                                 {% endif %}
@@ -315,7 +315,7 @@
         <!-- 图表区域 -->
         <div class="tech-card">
             <h3 class="tech-card-title">
-                <i class="bi bi-bar-chart-line neon-glow" style="color: var(--tech-accent-cyan);"></i>
+                <!-- <i class="bi bi-bar-chart-line neon-glow" style="color: var(--tech-accent-cyan);"></i> -->
                 模型综合性能分析
             </h3>
             <div id="overall-bar-chart" class="tech-chart-container"></div>
@@ -323,7 +323,7 @@
 
         <div class="tech-card">
             <h3 class="tech-card-title">
-                <i class="bi bi-grid-3x3-gap neon-glow" style="color: var(--tech-accent-purple);"></i>
+                <!-- <i class="bi bi-grid-3x3-gap neon-glow" style="color: var(--tech-accent-purple);"></i> -->
                 安全管制策略象限分析
             </h3>
             <div class="row">
@@ -370,7 +370,7 @@
 
         <div class="tech-card">
             <h3 class="tech-card-title">
-                <i class="bi bi-radar-chart neon-glow" style="color: var(--tech-accent-pink);"></i>
+                <!-- <i class="bi bi-radar-chart neon-glow" style="color: var(--tech-accent-pink);"></i> -->
                 各模型维度平均分对比
             </h3>
             <div id="dimension-bar-chart" class="tech-chart-container"></div>

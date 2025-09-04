@@ -141,7 +141,7 @@
 /* 排名徽章调整 */
 .light-theme .rank-other {
     background: var(--tech-bg-hover);
-    border: 2px solid var(--tech-accent-cyan);
+    /* border: 2px solid var(--tech-accent-cyan); */
     color: var(--tech-text-primary);
 }
 

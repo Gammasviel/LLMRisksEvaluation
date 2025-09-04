@@ -103,7 +103,7 @@
         
         .rank-display.rank-top {
             border-color: var(--tech-accent-cyan);
-            color: var(--tech-accent-cyan);
+            color: #000000;
             box-shadow: 0 0 20px rgba(0, 217, 255, 0.3);
         }
         
@@ -273,8 +273,8 @@
                     
                     <div style="flex: 1;">
                         <h1 class="model-name">{{ llm.name }}</h1>
-                        <div class="rank-display {% if model_rank <= 3 %}rank-top{% endif %}">
-                            <span class="pulse-dot"></span>
+                        <div class="rank-display">
+                            <!-- <span class="pulse-dot"></span> -->
                             综合排名 #{{ model_rank }}
                         </div>
                     </div>
@@ -284,28 +284,28 @@
                 <div class="info-grid" style="margin-top: 3rem;">
                     <div class="info-card">
                         <div class="info-label">
-                            <i class="bi bi-speedometer2"></i>
+                            <!-- <i class="bi bi-speedometer2"></i> -->
                             综合得分
                         </div>
-                        <div class="info-value" style="color: var(--tech-accent-cyan);">
+                        <div class="info-value" style="color: #000000;">
                             {{ "%.2f"|format(radar_data['values'][1]) }}
                         </div>
                     </div>
                     <div class="info-card">
                         <div class="info-label">
-                            <i class="bi bi-chat-dots"></i>
+                            <!-- <i class="bi bi-chat-dots"></i> -->
                             响应率
                         </div>
-                        <div class="info-value" style="color: var(--tech-accent-green);">
+                        <div class="info-value" style="color: #000000;">
                             {{ "%.1f"|format(radar_data['values'][0]) }}%
                         </div>
                     </div>
                     <div class="info-card">
                         <div class="info-label">
-                            <i class="bi bi-shield-check"></i>
+                            <!-- <i class="bi bi-shield-check"></i> -->
                             安全等级
                         </div>
-                        <div class="info-value" style="color: var(--tech-accent-purple);">
+                        <div class="info-value" style="color: #000000;">
                             {% if radar_data['values'][1] > 3.5 %}
                                 高度安全
                             {% elif radar_data['values'][1] > 2.5 %}
@@ -325,13 +325,13 @@
         {% if llm.desc or llm.comment %}
         <div class="tech-card">
             <h3 class="tech-card-title">
-                <i class="bi bi-info-circle neon-glow" style="color: var(--tech-accent-cyan);"></i>
+                <!-- <i class="bi bi-info-circle neon-glow" style="color: var(--tech-accent-cyan);"></i> -->
                 模型信息
             </h3>
             
             {% if llm.desc %}
             <div class="section-title">
-                <i class="bi bi-file-text"></i>
+                <!-- <i class="bi bi-file-text"></i> -->
                 模型描述
             </div>
             <div class="description-card">
@@ -341,8 +341,8 @@
             
             {% if llm.comment %}
             <div class="section-title">
-                <i class="bi bi-star"></i>
-                专家评价
+                <!-- <i class="bi bi-star"></i> -->
+                模型评价
             </div>
             <div class="description-card">
                 <p style="margin: 0; line-height: 1.6;">{{ llm.comment }}</p>
@@ -355,7 +355,7 @@
         <div class="chart-grid">
             <div class="tech-card">
                 <h3 class="tech-card-title">
-                    <i class="bi bi-radar-chart neon-glow" style="color: var(--tech-accent-purple);"></i>
+                    <!-- <i class="bi bi-radar-chart neon-glow" style="color: var(--tech-accent-purple);"></i> -->
                     综合能力雷达图
                 </h3>
                 <div id="radar-chart" class="tech-chart-container"></div>
@@ -363,7 +363,7 @@
             
             <div class="tech-card">
                 <h3 class="tech-card-title">
-                    <i class="bi bi-pie-chart neon-glow" style="color: var(--tech-accent-pink);"></i>
+                    <!-- <i class="bi bi-pie-chart neon-glow" style="color: var(--tech-accent-pink);"></i> -->
                     维度得分分布
                 </h3>
                 <div id="pie-chart" class="tech-chart-container"></div>
@@ -373,7 +373,7 @@
         <!-- 详细数据 -->
         <div class="tech-card">
             <h3 class="tech-card-title">
-                <i class="bi bi-graph-up neon-glow" style="color: var(--tech-accent-yellow);"></i>
+                <!-- <i class="bi bi-graph-up neon-glow" style="color: var(--tech-accent-yellow);"></i> -->
                 各维度表现详情
             </h3>
             <div style="overflow-x: auto;">
@@ -392,7 +392,7 @@
                         <tr>
                             <td style="font-weight: 600;">{{ indicator.name }}</td>
                             <td>
-                                <span style="font-size: 1.125rem; font-weight: 700; color: var(--tech-accent-cyan);">
+                                <span style="font-size: 1.125rem; font-weight: 700; color: #000000;">
                                     {{ "%.2f%%"|format(score / indicator.max * 100) }}
                                 </span>
                             </td>
@@ -403,20 +403,20 @@
                             </td>
                             <td>
                                 {% if score >= indicator.max * 0.8 %}
-                                    <span class="data-label" style="background: rgba(16, 185, 129, 0.1); border-color: var(--tech-accent-green); color: var(--tech-accent-green);">
-                                        <i class="bi bi-check-circle-fill"></i>
-                                        优秀
-                                    </span>
+                                    <!-- <span class="data-label" style="background: rgba(16, 185, 129, 0.1); border-color: var(--tech-accent-green); color: var(--tech-accent-green);">
+                                        <i class="bi bi-check-circle-fill"></i> -->
+                                        <b>优秀</b>
+                                    <!-- </span> -->
                                 {% elif score >= indicator.max * 0.6 %}
-                                    <span class="data-label" style="background: rgba(245, 158, 11, 0.1); border-color: var(--tech-accent-yellow); color: var(--tech-accent-yellow);">
-                                        <i class="bi bi-exclamation-circle-fill"></i>
-                                        良好
-                                    </span>
+                                    <!-- <span class="data-label" style="background: rgba(245, 158, 11, 0.1); border-color: var(--tech-accent-yellow); color: var(--tech-accent-yellow);">
+                                        <i class="bi bi-exclamation-circle-fill"></i> -->
+                                        <b>良好</b>
+                                    <!-- </span> -->
                                 {% else %}
-                                    <span class="data-label" style="background: rgba(236, 72, 153, 0.1); border-color: var(--tech-accent-pink); color: var(--tech-accent-pink);">
-                                        <i class="bi bi-x-circle-fill"></i>
-                                        需改进
-                                    </span>
+                                    <!-- <span class="data-label" style="background: rgba(236, 72, 153, 0.1); border-color: var(--tech-accent-pink); color: var(--tech-accent-pink);">
+                                        <i class="bi bi-x-circle-fill"></i> -->
+                                        <b>需改进</b>
+                                    <!-- </span> -->
                                 {% endif %}
                             </td>
                         </tr>

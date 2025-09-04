@@ -243,7 +243,7 @@ body::after {
     padding: 1rem;
     text-align: left;
     font-weight: 700;
-    color: var(--tech-accent-cyan);
+    color: #000000;
     text-transform: uppercase;
     font-size: 0.875rem;
     letter-spacing: 0.05em;
@@ -295,7 +295,7 @@ body::after {
 
 .rank-other {
     background: var(--tech-bg-hover);
-    border: 2px solid var(--tech-border-light);
+    /* border: 2px solid var(--tech-border-light); */
     color: var(--tech-text-secondary);
 }
 
