@@ -6,7 +6,8 @@ from flask_uploads import configure_uploads
 from models import Setting, LLM
 from llm import clients
 from config import DEFAULT_CRITERIA
-from routes import dimensions_bp, index_bp, leaderboard_bp, models_bp, questions_bp, settings_bp, public_leaderboard_bp
+from routes import dimensions_bp, index_bp, leaderboard_bp, models_bp, questions_bp, settings_bp, public_leaderboard_bp, auth_bp
+from routes.auth import init_login_manager
 from utils import setup_logging
 
 setup_logging()
@@ -23,6 +24,7 @@ def create_app():
     configure_uploads(app, icons)
     
     csrf.init_app(app)
+    init_login_manager(app)
 
     logger.info("Initializing database.")
     db.init_app(app)
@@ -37,6 +39,7 @@ def create_app():
     app.register_blueprint(questions_bp)
     app.register_blueprint(settings_bp)
     app.register_blueprint(public_leaderboard_bp)
+    app.register_blueprint(auth_bp)
     
     with app.app_context():
         logger.info("Creating all database tables.")

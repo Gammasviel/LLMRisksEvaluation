@@ -2,6 +2,7 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.ext.mutable import MutableList
 from sqlalchemy import PickleType
 from extensions import db
+from flask_login import UserMixin
 
 class Dimension(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -95,3 +96,18 @@ class LLM(db.Model):
     
     def __repr__(self):
         return f'<LLM {self.name} ({self.model})>'
+    
+class User(db.Model, UserMixin):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(80), unique=True, nullable=False)
+    password_hash = db.Column(db.String(128))
+    is_admin = db.Column(db.Boolean, default=False, nullable=False)
+
+    def set_password(self, password):
+        # 在实际应用中，请使用更安全的哈希方法，如 werkzeug.security
+        import hashlib
+        self.password_hash = hashlib.sha256(password.encode('utf-8')).hexdigest()
+
+    def check_password(self, password):
+        import hashlib
+        return self.password_hash == hashlib.sha256(password.encode('utf-8')).hexdigest()
