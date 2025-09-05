@@ -184,11 +184,47 @@
             padding: 0.75rem;
         }
         
-        @media (max-width: 992px) {
-            .col-lg-8, .col-lg-4 {
-                flex: 0 0 100%;
-                max-width: 100%;
-            }
+        /* 排序相关样式 */
+        .sortable-header {
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+            transition: var(--tech-transition);
+        }
+        
+        .sortable-header:hover {
+            background: var(--tech-bg-hover);
+            color: var(--tech-accent-cyan);
+        }
+        
+        .sort-indicator {
+            margin-left: 0.5rem;
+            font-size: 0.8rem;
+            opacity: 0.7;
+        }
+        
+        .sort-indicator.active {
+            opacity: 1;
+            color: var(--tech-accent-cyan);
+        }
+        
+        .sort-indicator.asc::after {
+            content: '▲';
+        }
+        
+        .sort-indicator.desc::after {
+            content: '▼';
+        }
+        
+        /* Flash消息样式 */
+        .flash-danger {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: rgba(239, 68, 68, 0.3);
+        }
+        
+        .flash-success {
+            background: rgba(16, 185, 129, 0.1);
+            border-color: rgba(16, 185, 129, 0.3);
         }
     </style>
     
@@ -208,7 +244,7 @@
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 {% for category, message in messages %}
-                    <div class="tech-card" style="background: {% if category == 'danger' %}rgba(239, 68, 68, 0.1){% else %}rgba(16, 185, 129, 0.1){% endif %}; border-color: {% if category == 'danger' %}rgba(239, 68, 68, 0.3){% else %}rgba(16, 185, 129, 0.3){% endif %}; margin-bottom: 1rem;">
+                    <div class="tech-card {% if category == 'danger' %}flash-danger{% else %}flash-success{% endif %}" style="margin-bottom: 1rem;">
                         <div style="display: flex; align-items: center; justify-content: space-between;">
                             <span>{{ message }}</span>
                             <button onclick="this.parentElement.parentElement.remove()" style="background: none; border: none; color: var(--tech-text-secondary); cursor: pointer;">
@@ -253,12 +289,21 @@
                 <table class="tech-table">
                     <thead>
                         <tr>
-                            <th style="text-align: center;">排名</th>
+                            <th style="text-align: center;">总得分排名</th>
                             <th>模型名称</th>
-                            <th>总得分</th>
-                            <th>响应率</th>
+                            <th class="sortable-header" onclick="sortTable('avg_score')" style="cursor: pointer;">
+                                总得分
+                                <span class="sort-indicator {% if current_sort_by == 'avg_score' %}active {{ current_sort_order }}{% endif %}"></span>
+                            </th>
+                            <th class="sortable-header" onclick="sortTable('response_rate')" style="cursor: pointer;">
+                                响应率
+                                <span class="sort-indicator {% if current_sort_by == 'response_rate' %}active {{ current_sort_order }}{% endif %}"></span>
+                            </th>
                             {% for dim in l1_dimensions %}
-                            <th style="text-align: center;">{{ dim.name }}排名</th>
+                            <th class="sortable-header" onclick="sortTable('dim_{{ dim.id }}')" style="text-align: center; cursor: pointer;">
+                                {{ dim.name }}评分
+                                <span class="sort-indicator {% if current_sort_by == 'dim_' + dim.id|string %}active {{ current_sort_order }}{% endif %}"></span>
+                            </th>
                             {% endfor %}
                         </tr>
                     </thead>
@@ -267,7 +312,7 @@
                         <tr>
                             <td style="text-align: center;">
                                 <span class="rank-badge rank-other">
-                                    {{ loop.index }}
+                                    {{ item.total_score_rank }}
                                 </span>
                             </td>
                             <td>
@@ -278,7 +323,7 @@
                             <td>
                                 <span style="font-weight: 600; color: #000000;">{{ "%.2f%%" | format(item.avg_score / 5 * 100) }}</span>
                                 <div class="score-bar">
-                                    <div class="score-fill" style="width: {{ (item.avg_score / 5 * 100) }}%"></div>
+                                    <div class="score-fill" style="width: {{ (item.avg_score / 5 * 100)|round(2) }}%"></div>
                                 </div>
                             </td>
                             <td>
@@ -288,11 +333,8 @@
                             </td>
                             {% for dim in l1_dimensions %}
                             <td style="text-align: center;">
-                                {% if item.ranks.get(dim.id, '-') != '-' %}
-                                    <!-- <span class="data-label"> -->
-                                        <!-- <span class="data-label-icon" style="background: {% if item.ranks[dim.id] == 1 %}var(--tech-accent-green){% elif item.ranks[dim.id] <= 3 %}var(--tech-accent-yellow){% else %}var(--tech-accent-cyan){% endif %};"></span> -->
-                                    <span style="font-weight: 600; color: #000000">{{ item.ranks[dim.id] }}</span>
-                                    <!-- </span> -->
+                                {% if item.dim_scores_display.get(dim.id, '-') != '-' %}
+                                    <span style="font-weight: 600; color: #000000">{{ "%.2f%%" | format(item.dim_scores_display[dim.id] / 5 * 100) }}</span>
                                 {% else %}
                                     <span style="color: var(--tech-text-muted);">-</span>
                                 {% endif %}
@@ -393,11 +435,21 @@
     <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
     
     <script>
+    // 从后端传递的数据
+    window.leaderboardData = {{ leaderboard|tojson|safe }};
+    window.dimensions = {{ l1_dimensions|tojson|safe }};
+    window.scoreThreshold = {{ score_threshold }};
+    window.rateThreshold = {{ rate_threshold }};
+    window.currentSortBy = '{{ current_sort_by }}';
+    window.currentSortOrder = '{{ current_sort_order }}';
+    </script>
+    
+    <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const leaderboardData = {{ leaderboard|tojson }};
-        const dimensions = {{ l1_dimensions|tojson }};
-        const scoreThreshold = {{ score_threshold }};
-        const rateThreshold = {{ rate_threshold }};
+        const leaderboardData = window.leaderboardData;
+        const dimensions = window.dimensions;
+        const scoreThreshold = window.scoreThreshold;
+        const rateThreshold = window.rateThreshold;
         
         if (!leaderboardData || leaderboardData.length === 0) return;
 
@@ -833,6 +885,27 @@
         //     }, 100);
         // });
     });
+    
+    // 表格排序功能
+    function sortTable(column) {
+        const currentSortBy = window.currentSortBy;
+        const currentSortOrder = window.currentSortOrder;
+        
+        let newSortOrder = 'desc'; // 默认倒序
+        
+        // 如果点击的是当前排序列，则切换排序顺序
+        if (currentSortBy === column) {
+            newSortOrder = currentSortOrder === 'desc' ? 'asc' : 'desc';
+        }
+        
+        // 构建新的URL
+        const url = new URL(window.location);
+        url.searchParams.set('sort_by', column);
+        url.searchParams.set('sort_order', newSortOrder);
+        
+        // 跳转到新URL
+        window.location.href = url.toString();
+    }
     </script>
 </body>
 </html>

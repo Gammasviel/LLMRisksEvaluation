@@ -137,7 +137,7 @@ def rate_answer(answer: Answer, question: Question, criteria: str, total_score: 
 
 # --- 4. 公共榜单数据生成工具 ---
 
-def generate_leaderboard_data(rater_names: list[str]) -> dict:
+def generate_leaderboard_data(rater_names: list[str], sort_by: str = 'avg_score', sort_order: str = 'desc') -> dict:
     """Fetches and processes all data required for the public leaderboard."""
     models = LLM.query.filter(LLM.name.notin_(rater_names)).all()
     l1_dims_objects = Dimension.query.filter_by(level=1).order_by(Dimension.id).all()
@@ -215,17 +215,35 @@ def generate_leaderboard_data(rater_names: list[str]) -> dict:
             )
         leaderboard_data.append(data)
 
-    for dim in l1_dims:
-        leaderboard_data.sort(key=lambda x: x['dim_scores'][dim['id']]['avg'], reverse=True)
-        for i, model_data in enumerate(leaderboard_data):
-            if 'ranks' not in model_data:
-                model_data['ranks'] = {}
+    # Add dimension scores to each model instead of ranks
+    for model_data in leaderboard_data:
+        if 'dim_scores_display' not in model_data:
+            model_data['dim_scores_display'] = {}
+        for dim in l1_dims:
             total_dim_count = model_data['dim_scores'][dim['id']]['subj_count'] + model_data['dim_scores'][dim['id']]['obj_count']
             if total_dim_count > 0:
-                model_data['ranks'][dim['id']] = i + 1
+                model_data['dim_scores_display'][dim['id']] = model_data['dim_scores'][dim['id']]['avg']
             else:
-                model_data['ranks'][dim['id']] = '-'
+                model_data['dim_scores_display'][dim['id']] = '-'
 
-    leaderboard_data.sort(key=lambda x: x['avg_score'], reverse=True)
+    # Calculate and add total score rank (always based on avg_score)
+    leaderboard_data_by_score = sorted(leaderboard_data, key=lambda x: x['avg_score'], reverse=True)
+    for i, model_data in enumerate(leaderboard_data_by_score):
+        model_data['total_score_rank'] = i + 1
+
+    # Apply sorting based on parameters
+    reverse_order = sort_order == 'desc'
+    
+    if sort_by == 'avg_score':
+        leaderboard_data.sort(key=lambda x: x['avg_score'], reverse=reverse_order)
+    elif sort_by == 'response_rate':
+        leaderboard_data.sort(key=lambda x: x['response_rate'], reverse=reverse_order)
+    elif sort_by.startswith('dim_'):
+        # Handle dimension sorting (e.g., 'dim_1', 'dim_2', etc.)
+        dim_id = int(sort_by.split('_')[1])
+        leaderboard_data.sort(key=lambda x: x['dim_scores'].get(dim_id, {}).get('avg', 0), reverse=reverse_order)
+    else:
+        # Default to avg_score sorting if invalid sort_by parameter
+        leaderboard_data.sort(key=lambda x: x['avg_score'], reverse=reverse_order)
     
     return {'leaderboard': leaderboard_data, 'l1_dimensions': l1_dims}

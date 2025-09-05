@@ -1,7 +1,7 @@
 # .\routes\public_leaderboard.py
 
 import logging
-from flask import Blueprint, render_template, flash, redirect, url_for
+from flask import Blueprint, render_template, flash, redirect, url_for, request
 from models import Question, LLM
 from extensions import db
 from config import (
@@ -20,16 +20,22 @@ logger = logging.getLogger('public_leaderboard_routes')
 def display_public_leaderboard():
     logger.info("Accessing public leaderboard page.")
     
+    # Get sorting parameters from query string
+    sort_by = request.args.get('sort_by', 'avg_score')  # Default: total score
+    sort_order = request.args.get('sort_order', 'desc')  # Default: descending
+    
     try:
         # <-- 2. 路由现在只负责调用工具函数和渲染 -->
         rater_names = [rater for raters in RATERS.values() for rater in raters]
-        data = generate_leaderboard_data(rater_names)
+        data = generate_leaderboard_data(rater_names, sort_by, sort_order)
         
         return render_template('public_leaderboard.html', 
                                leaderboard=data['leaderboard'], 
                                l1_dimensions=data['l1_dimensions'],
                                score_threshold=QUADRANT_SCORE_THRESHOLD,
-                               rate_threshold=QUADRANT_RESPONSE_RATE_THRESHOLD)
+                               rate_threshold=QUADRANT_RESPONSE_RATE_THRESHOLD,
+                               current_sort_by=sort_by,
+                               current_sort_order=sort_order)
 
     except Exception as e:
         logger.error(f"Error generating public leaderboard: {e}", exc_info=True)
@@ -38,7 +44,9 @@ def display_public_leaderboard():
                                leaderboard=[], 
                                l1_dimensions=[],
                                score_threshold=QUADRANT_SCORE_THRESHOLD,
-                               rate_threshold=QUADRANT_RESPONSE_RATE_THRESHOLD)
+                               rate_threshold=QUADRANT_RESPONSE_RATE_THRESHOLD,
+                               current_sort_by=sort_by,
+                               current_sort_order=sort_order)
 
 @public_leaderboard_bp.route('/update-all', methods=['POST'])
 def update_all_models():
