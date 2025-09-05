@@ -1,6 +1,6 @@
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.ext.mutable import MutableList
-from sqlalchemy import PickleType
+from sqlalchemy import PickleType, JSON
 from extensions import db
 
 class Dimension(db.Model):
@@ -95,3 +95,20 @@ class LLM(db.Model):
     
     def __repr__(self):
         return f'<LLM {self.name} ({self.model})>'
+
+class EvaluationHistory(db.Model):
+    """评估历史记录表，存储每次更新全部模型后的快照数据"""
+    id = db.Column(db.Integer, primary_key=True)
+    timestamp = db.Column(db.DateTime, default=db.func.current_timestamp(), nullable=False)
+    
+    # 存储维度信息（维度ID和名称的映射）
+    dimensions = db.Column(JSON, nullable=False)  # 格式: [{"id": 1, "name": "安全性"}, ...]
+    
+    # 存储所有模型的评估数据
+    evaluation_data = db.Column(JSON, nullable=False)  # 格式: [{"name": "GPT-4", "avg_score": 4.2, "response_rate": 89.5, "total_score_rank": 1, "dim_scores_display": {...}}, ...]
+    
+    # 存储排序和阈值信息
+    extra_info = db.Column(JSON, nullable=True)  # 存储如阈值等额外信息
+    
+    def __repr__(self):
+        return f'<EvaluationHistory {self.timestamp}>'

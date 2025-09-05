@@ -1,0 +1,249 @@
+<!-- templates/evaluation_history.html -->
+<!DOCTYPE html>
+<html lang="zh-CN" class="light-theme">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>历史评估记录 - AI模型综合能力评估系统</title>
+    
+    <!-- 字体 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- 图标 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    
+    <!-- 科技风格CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/tech-style.css') }}">
+    <!-- 浅色主题CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/light-theme.css') }}">
+    
+    <style>
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            background: var(--tech-bg-card);
+            border: 1px solid var(--tech-border);
+            border-radius: 0.5rem;
+            color: var(--tech-text-secondary);
+            text-decoration: none;
+            transition: var(--tech-transition);
+            margin-bottom: 2rem;
+        }
+        
+        .back-button:hover {
+            background: var(--tech-bg-hover);
+            color: var(--tech-accent-cyan);
+            border-color: var(--tech-accent-cyan);
+            transform: translateX(-5px);
+        }
+
+        .history-grid {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .history-item {
+            background: var(--tech-bg-card);
+            border: 1px solid var(--tech-border);
+            border-radius: 1rem;
+            padding: 2rem;
+            transition: var(--tech-transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .history-item::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: var(--tech-gradient-2);
+            border-radius: 1rem;
+            opacity: 0;
+            z-index: -1;
+            transition: opacity 0.3s ease;
+        }
+
+        .history-item:hover::before {
+            opacity: 0.1;
+        }
+
+        .history-item:hover {
+            background: var(--tech-bg-hover);
+            transform: translateY(-5px);
+            border-color: var(--tech-accent-cyan);
+        }
+
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1.5rem;
+        }
+
+        .history-time {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: var(--tech-gradient-2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .history-stats {
+            display: flex;
+            gap: 2rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--tech-text-primary);
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: var(--tech-text-muted);
+            margin-top: 0.25rem;
+        }
+
+        .view-detail-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            background: var(--tech-gradient-1);
+            border: none;
+            border-radius: 0.5rem;
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            transition: var(--tech-transition);
+        }
+
+        .view-detail-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(65, 237, 237, 0.3);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--tech-text-muted);
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+    </style>
+</head>
+<body>
+    <header class="tech-header">
+        <div class="tech-container">
+            <a href="{{ url_for('public_leaderboard.display_public_leaderboard') }}" class="back-button">
+                <i class="bi bi-chevron-left"></i>
+                返回榜单
+            </a>
+            <h1 class="neon-text">历史评估记录</h1>
+        </div>
+    </header>
+
+    <div class="tech-container">
+        <!-- Flash 消息 -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="tech-card {% if category == 'danger' %}flash-danger{% else %}flash-success{% endif %}" style="margin-bottom: 1rem;">
+                        <div style="display: flex; align-items: center; justify-content: space-between;">
+                            <span>{{ message }}</span>
+                            <button onclick="this.parentElement.parentElement.remove()" style="background: none; border: none; color: var(--tech-text-secondary); cursor: pointer;">
+                                <i class="bi bi-x-lg"></i>
+                            </button>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        {% if history_records %}
+        <div class="history-grid">
+            {% for record in history_records %}
+            <div class="history-item">
+                <div class="history-header">
+                    <div>
+                        <div class="history-time">
+                            {{ record.timestamp.strftime('%Y年%m月%d日 %H:%M:%S') }}
+                        </div>
+                        <div style="color: var(--tech-text-muted); font-size: 0.875rem; margin-top: 0.5rem;">
+                            评估快照记录 #{{ record.id }}
+                        </div>
+                    </div>
+                    <a href="{{ url_for('public_leaderboard.history_detail', history_id=record.id) }}" class="view-detail-btn">
+                        <i class="bi bi-eye"></i>
+                        查看详情
+                    </a>
+                </div>
+
+                <div class="history-stats">
+                    <div class="stat-item">
+                        <div class="stat-value">{{ record.extra_info.get('total_models', 0) }}</div>
+                        <div class="stat-label">评估模型</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">{{ record.extra_info.get('total_dimensions', 0) }}</div>
+                        <div class="stat-label">评估维度</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">{{ record.extra_info.get('score_threshold', 3.0) }}</div>
+                        <div class="stat-label">分数阈值</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">{{ record.extra_info.get('rate_threshold', 90.0) }}%</div>
+                        <div class="stat-label">响应率阈值</div>
+                    </div>
+                </div>
+
+                {% if record.evaluation_data %}
+                <div style="color: var(--tech-text-secondary); font-size: 0.875rem;">
+                    最高得分模型：
+                    {% set best_model = record.evaluation_data | selectattr('total_score_rank', 'equalto', 1) | first %}
+                    {% if best_model %}
+                        <strong style="color: var(--tech-text-primary);">{{ best_model.name }}</strong>
+                        ({{ "%.2f%%" | format(best_model.avg_score / 5 * 100) }})
+                    {% else %}
+                        <span style="color: var(--tech-text-muted);">无数据</span>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="tech-card">
+            <div class="empty-state">
+                <i class="bi bi-clock-history"></i>
+                <h3>暂无历史记录</h3>
+                <p>当您点击"更新全部模型"时，系统会自动保存评估快照。</p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <footer style="text-align: center; padding: 3rem 0; color: var(--tech-text-muted);">
+        <p>AI模型综合能力评估系统 © 2024</p>
+    </footer>
+</body>
+</html>

@@ -2,7 +2,7 @@
 
 import logging
 from flask import Blueprint, render_template, flash, redirect, url_for, request
-from models import Question, LLM
+from models import Question, LLM, EvaluationHistory
 from extensions import db
 from config import (
     RATERS, 
@@ -57,14 +57,78 @@ def update_all_models():
         if not all_question_ids:
             flash('系统中没有任何问题，无需更新。', 'warning')
             return redirect(url_for('public_leaderboard.display_public_leaderboard'))
+        
+        # 启动所有更新任务
         for qid in all_question_ids:
             process_question.delay(qid)
-        flash(f'成功将 {len(all_question_ids)} 个问题的更新任务加入后台队列。请稍后刷新查看结果。', 'success')
+        
+        # 保存当前评估数据为历史记录
+        try:
+            rater_names = [rater for raters in RATERS.values() for rater in raters]
+            current_data = generate_leaderboard_data(rater_names)
+            
+            # 创建历史记录
+            history_record = EvaluationHistory(
+                dimensions=current_data['l1_dimensions'],
+                evaluation_data=current_data['leaderboard'],
+                extra_info={
+                    'score_threshold': QUADRANT_SCORE_THRESHOLD,
+                    'rate_threshold': QUADRANT_RESPONSE_RATE_THRESHOLD,
+                    'total_models': len(current_data['leaderboard']),
+                    'total_dimensions': len(current_data['l1_dimensions'])
+                }
+            )
+            db.session.add(history_record)
+            db.session.commit()
+            logger.info(f"Saved evaluation history snapshot with {len(current_data['leaderboard'])} models")
+        except Exception as e:
+            logger.error(f"Failed to save evaluation history: {e}", exc_info=True)
+            # 不要因为历史记录保存失败而中断主流程
+        
+        flash(f'成功将 {len(all_question_ids)} 个问题的更新任务加入后台队列，并已保存当前评估快照。请稍后刷新查看结果。', 'success')
         logger.info(f"Queued update tasks for {len(all_question_ids)} questions.")
     except Exception as e:
         logger.error(f"Failed to queue update tasks: {e}", exc_info=True)
         flash('将更新任务加入队列时发生错误，请检查Celery服务是否正常。', 'danger')
     return redirect(url_for('public_leaderboard.display_public_leaderboard'))
+
+
+@public_leaderboard_bp.route('/history')
+def evaluation_history():
+    """显示历史评估记录"""
+    logger.info("Accessing evaluation history page.")
+    
+    try:
+        # 获取所有历史记录，按时间倒序
+        history_records = EvaluationHistory.query.order_by(EvaluationHistory.timestamp.desc()).all()
+        
+        return render_template('evaluation_history.html', 
+                             history_records=history_records)
+    except Exception as e:
+        logger.error(f"Error loading evaluation history: {e}", exc_info=True)
+        flash('加载历史记录时发生错误，请检查日志。', 'danger')
+        return render_template('evaluation_history.html', 
+                             history_records=[])
+
+
+@public_leaderboard_bp.route('/history/<int:history_id>')
+def history_detail(history_id):
+    """显示特定历史记录的详细数据"""
+    logger.info(f"Accessing history detail for record {history_id}.")
+    
+    try:
+        history_record = EvaluationHistory.query.get_or_404(history_id)
+        
+        return render_template('history_detail.html',
+                             history_record=history_record,
+                             leaderboard=history_record.evaluation_data,
+                             l1_dimensions=history_record.dimensions,
+                             score_threshold=history_record.extra_info.get('score_threshold', 3.0),
+                             rate_threshold=history_record.extra_info.get('rate_threshold', 90.0))
+    except Exception as e:
+        logger.error(f"Error loading history detail {history_id}: {e}", exc_info=True)
+        flash('加载历史记录详情时发生错误。', 'danger')
+        return redirect(url_for('public_leaderboard.evaluation_history'))
 
 
 @public_leaderboard_bp.route('/model/detail/<model_name>')
