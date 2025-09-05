@@ -99,16 +99,46 @@ def evaluation_history():
     logger.info("Accessing evaluation history page.")
     
     try:
-        # 获取所有历史记录，按时间倒序
-        history_records = EvaluationHistory.query.order_by(EvaluationHistory.timestamp.desc()).all()
+        # 获取查询参数
+        start_date = request.args.get('start_date')
+        end_date = request.args.get('end_date')
+        
+        # 构建查询
+        query = EvaluationHistory.query
+        
+        # 应用时间筛选
+        if start_date:
+            try:
+                from datetime import datetime
+                start_dt = datetime.strptime(start_date, '%Y-%m-%d')
+                query = query.filter(EvaluationHistory.timestamp >= start_dt)
+            except ValueError:
+                flash('起始日期格式无效，请使用 YYYY-MM-DD 格式', 'warning')
+        
+        if end_date:
+            try:
+                from datetime import datetime
+                end_dt = datetime.strptime(end_date, '%Y-%m-%d')
+                # 添加一天以包含结束日期的所有记录
+                end_dt = end_dt.replace(hour=23, minute=59, second=59)
+                query = query.filter(EvaluationHistory.timestamp <= end_dt)
+            except ValueError:
+                flash('结束日期格式无效，请使用 YYYY-MM-DD 格式', 'warning')
+        
+        # 按时间倒序获取结果
+        history_records = query.order_by(EvaluationHistory.timestamp.desc()).all()
         
         return render_template('evaluation_history.html', 
-                             history_records=history_records)
+                             history_records=history_records,
+                             start_date=start_date,
+                             end_date=end_date)
     except Exception as e:
         logger.error(f"Error loading evaluation history: {e}", exc_info=True)
         flash('加载历史记录时发生错误，请检查日志。', 'danger')
         return render_template('evaluation_history.html', 
-                             history_records=[])
+                             history_records=[],
+                             start_date=None,
+                             end_date=None)
 
 
 @public_leaderboard_bp.route('/history/<int:history_id>')
