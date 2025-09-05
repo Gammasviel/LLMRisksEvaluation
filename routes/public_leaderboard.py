@@ -67,6 +67,9 @@ def update_all_models():
             rater_names = [rater for raters in RATERS.values() for rater in raters]
             current_data = generate_leaderboard_data(rater_names)
             
+            # 获取题目总数
+            total_questions = Question.query.count()
+            
             # 创建历史记录
             history_record = EvaluationHistory(
                 dimensions=current_data['l1_dimensions'],
@@ -75,7 +78,9 @@ def update_all_models():
                     'score_threshold': QUADRANT_SCORE_THRESHOLD,
                     'rate_threshold': QUADRANT_RESPONSE_RATE_THRESHOLD,
                     'total_models': len(current_data['leaderboard']),
-                    'total_dimensions': len(current_data['l1_dimensions'])
+                    'total_dimensions': len(current_data['l1_dimensions']),
+                    'total_questions': total_questions,
+                    'manual_save': False  # 标记为自动保存
                 }
             )
             db.session.add(history_record)

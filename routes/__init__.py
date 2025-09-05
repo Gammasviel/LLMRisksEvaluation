@@ -5,6 +5,7 @@ from .models import models_bp
 from .settings import settings_bp
 from .questions import questions_bp
 from .public_leaderboard import public_leaderboard_bp
+from .dev_history import dev_history_bp
 
 __all__ = [
     'dimensions_bp',
@@ -13,5 +14,6 @@ __all__ = [
     'models_bp',
     'settings_bp',
     'questions_bp',
-    'public_leaderboard_bp'
+    'public_leaderboard_bp',
+    'dev_history_bp'
 ]

@@ -321,21 +321,27 @@
 
                 <div class="history-stats">
                     <div class="stat-item">
-                        <div class="stat-value">{{ record.extra_info.get('total_models', 0) }}</div>
-                        <div class="stat-label">评估模型</div>
+                        <div class="stat-value">{{ record.evaluation_data | length }}</div>
+                        <div class="stat-label">参评模型</div>
                     </div>
                     <div class="stat-item">
-                        <div class="stat-value">{{ record.extra_info.get('total_dimensions', 0) }}</div>
+                        <div class="stat-value">{{ record.dimensions | length }}</div>
                         <div class="stat-label">评估维度</div>
                     </div>
                     <div class="stat-item">
-                        <div class="stat-value">{{ record.extra_info.get('score_threshold', 3.0) }}</div>
-                        <div class="stat-label">分数阈值</div>
+                        {% set total_questions = record.extra_info.get('total_questions', '-') %}
+                        <div class="stat-value">{{ total_questions if total_questions != '-' else '未知' }}</div>
+                        <div class="stat-label">评估题目</div>
                     </div>
-                    <div class="stat-item">
-                        <div class="stat-value">{{ record.extra_info.get('rate_threshold', 90.0) }}%</div>
-                        <div class="stat-label">响应率阈值</div>
-                    </div>
+                    <!-- <div class="stat-item">
+                        {% if record.extra_info.get('manual_save') %}
+                        <div class="stat-value"><i class="bi bi-hand-thumbs-up" style="color: var(--tech-accent-cyan);"></i></div>
+                        <div class="stat-label">手动保存</div>
+                        {% else %}
+                        <div class="stat-value"><i class="bi bi-arrow-clockwise" style="color: var(--tech-accent-purple);"></i></div>
+                        <div class="stat-label">更新保存</div>
+                        {% endif %}
+                    </div> -->
                 </div>
 
                 {% if record.evaluation_data %}

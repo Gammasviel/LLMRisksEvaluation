@@ -229,8 +229,8 @@
                             </td>
                             {% for dim in l1_dimensions %}
                             <td style="text-align: center;">
-                                {% if item.dim_scores_display.get(dim.id, '-') != '-' %}
-                                    <span style="font-weight: 600; color: #000000">{{ "%.2f%%" | format(item.dim_scores_display[dim.id] / 5 * 100) }}</span>
+                                {% if item.dim_scores_display.get(dim.id|string, '-') != '-' %}
+                                    <span style="font-weight: 600; color: #000000">{{ "%.2f%%" | format(item.dim_scores_display[dim.id|string] / 5 * 100) }}</span>
                                 {% else %}
                                     <span style="color: var(--tech-text-muted);">-</span>
                                 {% endif %}
@@ -654,7 +654,7 @@
                             focus: 'series'
                         },
                         data: allModels.map(model => {
-                            const scoreData = model.dim_scores[dim.id];
+                            const scoreData = model.dim_scores[dim.id.toString()];
                             return scoreData ? parseFloat(scoreData.avg * 20) : 0;
                         }),
                         itemStyle: {

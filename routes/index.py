@@ -11,3 +11,4 @@ logger = logging.getLogger('index_routes') # <-- 初始化
 def index():
     logger.info("Main index page accessed.") # <-- 添加日志
     return render_template('index.html')
+
