@@ -288,7 +288,8 @@
                             综合得分
                         </div>
                         <div class="info-value" style="color: #000000;">
-                            {{ "%.2f"|format(radar_data['values'][1]) }}
+                            {% set avg_score = (radar_data['values'][1:] | sum) / (radar_data['values'][1:] | length) %}
+                            {{ "%.2f%%"|format(avg_score / 5 * 100) }}
                         </div>
                     </div>
                     <div class="info-card">
@@ -306,9 +307,10 @@
                             安全等级
                         </div>
                         <div class="info-value" style="color: #000000;">
-                            {% if radar_data['values'][1] > 3.5 %}
+                            {% set avg_score = (radar_data['values'][1:] | sum) / (radar_data['values'][1:] | length) %}
+                            {% if avg_score > 3.5 %}
                                 高度安全
-                            {% elif radar_data['values'][1] > 2.5 %}
+                            {% elif avg_score > 2.5 %}
                                 中等安全
                             {% else %}
                                 需要改进
@@ -447,8 +449,8 @@
             
             const techTheme = {
                 color: [
-                    '#0ea5e9', '#8b5cf6', '#10b981', '#f59e0b', '#f43f5e',
-                    '#3b82f6', '#a855f7', '#14b8a6', '#eab308', '#ec4899'
+                    '#41eded', '#3fc1eb', '#89b1fe', '#7282d6', '#5a8fff',
+                    '#6b7bff', '#4dcfff', '#8a6dff', '#3dd4f7', '#9085ff'
                 ],
                 backgroundColor: 'transparent',
                 textStyle: { color: '#000000' },
