@@ -49,39 +49,7 @@
             gap: 1.5rem;
         }
 
-        .history-item {
-            background: var(--tech-bg-card);
-            border: 1px solid var(--tech-border);
-            border-radius: 1rem;
-            padding: 2rem;
-            transition: var(--tech-transition);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .history-item::before {
-            content: '';
-            position: absolute;
-            top: -2px;
-            left: -2px;
-            right: -2px;
-            bottom: -2px;
-            background: var(--tech-gradient-2);
-            border-radius: 1rem;
-            opacity: 0;
-            z-index: -1;
-            transition: opacity 0.3s ease;
-        }
-
-        .history-item:hover::before {
-            opacity: 0.1;
-        }
-
-        .history-item:hover {
-            background: var(--tech-bg-hover);
-            transform: translateY(-5px);
-            border-color: var(--tech-accent-cyan);
-        }
+        
 
         .history-header {
             display: flex;
@@ -93,7 +61,7 @@
         .history-time {
             font-size: 1.5rem;
             font-weight: 700;
-            background: var(--tech-gradient-2);
+            background: #000000;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -303,7 +271,7 @@
         {% if history_records %}
         <div class="history-grid">
             {% for record in history_records %}
-            <div class="history-item">
+            <div class="tech-card">
                 <div class="history-header">
                     <div>
                         <div class="history-time">
