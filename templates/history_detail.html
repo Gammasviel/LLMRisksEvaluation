@@ -150,6 +150,37 @@
             color: var(--tech-text-muted);
             font-size: 1rem;
         }
+        /* 排序相关样式 */
+        .sortable-header {
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+            transition: var(--tech-transition);
+        }
+        
+        .sortable-header:hover {
+            background: var(--tech-bg-hover);
+            color: var(--tech-accent-cyan);
+        }
+        
+        .sort-indicator {
+            margin-left: 0.5rem;
+            font-size: 0.8rem;
+            opacity: 0.7;
+        }
+        
+        .sort-indicator.active {
+            opacity: 1;
+            color: var(--tech-accent-cyan);
+        }
+        
+        .sort-indicator.asc::after {
+            content: '▲';
+        }
+        
+        .sort-indicator.desc::after {
+            content: '▼';
+        }
     </style>
 </head>
 <body>
@@ -196,11 +227,18 @@
                         <tr>
                             <th style="text-align: center;">总得分排名</th>
                             <th>模型名称</th>
-                            <th>总得分</th>
-                            <th>响应率</th>
+                            <th class="sortable-header" onclick="sortTable('avg_score')" style="cursor: pointer;">
+                                总得分
+                                <span class="sort-indicator {% if current_sort_by == 'avg_score' %}active {{ current_sort_order }}{% endif %}"></span>
+                            </th>
+                            <th class="sortable-header" onclick="sortTable('response_rate')" style="cursor: pointer;">
+                                响应率
+                                <span class="sort-indicator {% if current_sort_by == 'response_rate' %}active {{ current_sort_order }}{% endif %}"></span>
+                            </th>
                             {% for dim in l1_dimensions %}
-                            <th style="text-align: center;">
+                            <th class="sortable-header" onclick="sortTable('dim_{{ dim.id }}')" style="text-align: center; cursor: pointer;">
                                 {{ dim.name }}评分
+                                <span class="sort-indicator {% if current_sort_by == 'dim_' + dim.id|string %}active {{ current_sort_order }}{% endif %}"></span>
                             </th>
                             {% endfor %}
                         </tr>
@@ -323,6 +361,8 @@
     window.dimensions = {{ l1_dimensions|tojson|safe }};
     window.scoreThreshold = {{ score_threshold }};
     window.rateThreshold = {{ rate_threshold }};
+    window.currentSortBy = '{{ current_sort_by }}';
+    window.currentSortOrder = '{{ current_sort_order }}';
     </script>
     
     <script>
@@ -727,5 +767,27 @@
     <footer style="text-align: center; padding: 3rem 0; color: var(--tech-text-muted);">
         <p>AI模型综合能力评估系统 © 2024</p>
     </footer>
+    <script>
+    // 表格排序功能
+    function sortTable(column) {
+        const currentSortBy = window.currentSortBy;
+        const currentSortOrder = window.currentSortOrder;
+        
+        let newSortOrder = 'desc'; // 默认倒序
+        
+        // 如果点击的是当前排序列，则切换排序顺序
+        if (currentSortBy === column) {
+            newSortOrder = currentSortOrder === 'desc' ? 'asc' : 'desc';
+        }
+        
+        // 构建新的URL
+        const url = new URL(window.location);
+        url.searchParams.set('sort_by', column);
+        url.searchParams.set('sort_order', newSortOrder);
+        
+        // 跳转到新URL
+        window.location.href = url.toString();
+    }
+    </script>
 </body>
 </html>

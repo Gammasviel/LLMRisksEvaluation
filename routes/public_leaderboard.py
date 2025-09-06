@@ -154,12 +154,28 @@ def history_detail(history_id):
     try:
         history_record = EvaluationHistory.query.get_or_404(history_id)
         
+        # Get sorting parameters
+        sort_by = request.args.get('sort_by', 'avg_score')
+        sort_order = request.args.get('sort_order', 'desc')
+        
+        leaderboard_data = history_record.evaluation_data
+        
+        # Sort data
+        reverse = sort_order == 'desc'
+        if sort_by.startswith('dim_'):
+            dim_id = sort_by.split('_')[1]
+            leaderboard_data.sort(key=lambda x: x['dim_scores_display'].get(dim_id, -1), reverse=reverse)
+        else:
+            leaderboard_data.sort(key=lambda x: x.get(sort_by, 0), reverse=reverse)
+
         return render_template('history_detail.html',
                              history_record=history_record,
-                             leaderboard=history_record.evaluation_data,
+                             leaderboard=leaderboard_data,
                              l1_dimensions=history_record.dimensions,
                              score_threshold=history_record.extra_info.get('score_threshold', 3.0),
-                             rate_threshold=history_record.extra_info.get('rate_threshold', 90.0))
+                             rate_threshold=history_record.extra_info.get('rate_threshold', 90.0),
+                             current_sort_by=sort_by,
+                             current_sort_order=sort_order)
     except Exception as e:
         logger.error(f"Error loading history detail {history_id}: {e}", exc_info=True)
         flash('加载历史记录详情时发生错误。', 'danger')
