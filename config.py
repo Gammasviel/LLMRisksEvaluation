@@ -55,8 +55,10 @@ RATERS = {
 CONNECTION_ERROR_RETRIES = 5
 RATING_FAIL_RETRIES = 5
 
-CELERY_BROKER_URL = 'redis://localhost:6379/0'
-CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+CELERY = {
+    'broker_url': 'redis://localhost:6379/0',
+    'result_backend': 'redis://localhost:6379/0'
+}
 
 QUADRANT_SCORE_THRESHOLD = 3.25  # 总得分阈值
 QUADRANT_RESPONSE_RATE_THRESHOLD = 91.0  # 响应率阈值

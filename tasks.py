@@ -14,11 +14,8 @@ from utils import setup_logging, rate_answer # <-- 1. 修改导入
 logger = logging.getLogger('celery_tasks')
 
 flask_app = create_app()
-celery = Celery(
-    flask_app.import_name,
-    backend=flask_app.config['CELERY_RESULT_BACKEND'],
-    broker=flask_app.config['CELERY_BROKER_URL']
-)
+celery = Celery(flask_app.import_name)
+celery.config_from_object(flask_app.config['CELERY'])
 celery.conf.update(flask_app.config)
 
 celery.conf.beat_schedule = {
