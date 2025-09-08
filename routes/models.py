@@ -7,18 +7,23 @@ from forms import LLMForm
 from llm import clients
 import logging
 from extensions import icons
-import hashlib
+from .auth import admin_required
+from flask_login import login_required
 
 models_bp = Blueprint('models', __name__, url_prefix='/dev/model')
 logger = logging.getLogger('model_routes')
 
 @models_bp.route('/manage')
+@login_required
+@admin_required
 def model_management():
     logger.info("Accessed model management page.")
     llms = LLM.query.all()
     return render_template('model_management.html', llms=llms)
 
 @models_bp.route('/add', methods=['GET', 'POST'])
+@login_required
+@admin_required
 def add_model():
     form = LLMForm()
     if not form.api_keys.entries:
@@ -62,6 +67,8 @@ def add_model():
     return render_template('edit_model.html', form=form, action='添加')
 
 @models_bp.route('/edit/<int:model_id>', methods=['GET', 'POST'])
+@login_required
+@admin_required
 def edit_model(model_id):
     llm = LLM.query.get_or_404(model_id)
     form = LLMForm(obj=llm)

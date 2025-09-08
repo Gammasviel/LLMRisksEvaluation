@@ -1,12 +1,16 @@
 from flask import Blueprint, render_template, request, jsonify, flash, redirect, url_for
 from models import Dimension, Question
 from extensions import db
+from .auth import admin_required
+from flask_login import login_required
 import logging
 
 dimensions_bp = Blueprint('dimensions', __name__, url_prefix='/dev/dimension')
 logger = logging.getLogger('dimension_routes')
 
 @dimensions_bp.route('/manage', methods=['GET', 'POST'])
+@login_required
+@admin_required
 def manage_dimensions():
     if request.method == 'GET':
         logger.info("Accessed dimension management page.")

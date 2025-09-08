@@ -7,6 +7,7 @@ from .questions import questions_bp
 from .public_leaderboard import public_leaderboard_bp
 from .dev_history import dev_history_bp
 from .auth import auth_bp
+from .history import history_bp
 
 __all__ = [
     'dimensions_bp',
@@ -17,5 +18,6 @@ __all__ = [
     'questions_bp',
     'public_leaderboard_bp',
     'dev_history_bp',
-    'auth_ap'
+    'auth_bp', 
+    'history_bp'
 ]

@@ -2,12 +2,16 @@ from flask import render_template, Blueprint, flash, redirect, url_for, request,
 from forms import QuestionForm
 from models import Dimension, Question, Answer, Rating
 from extensions import db
+from .auth import admin_required
+from flask_login import login_required
 import logging
 
 questions_bp = Blueprint('questions', __name__, url_prefix='/dev/question')
 logger = logging.getLogger('question_routes')
 
 @questions_bp.route('/add', methods=['GET', 'POST'])
+@login_required
+@admin_required
 def add_question():
     form = QuestionForm()
     
@@ -55,6 +59,8 @@ def add_question():
 
 # --- 这是被遗漏的函数 ---
 @questions_bp.route('/<int:question_id>')
+@login_required
+@admin_required
 def question_detail(question_id):
     logger.info(f"Accessed detail page for Question ID: {question_id}.") # <-- 添加日志
     question = Question.query.get_or_404(question_id)
@@ -79,6 +85,8 @@ def delete_question(question_id):
     return redirect(url_for('questions.update_questions'))
 
 @questions_bp.route('/update', methods=['GET', 'POST'])
+@login_required
+@admin_required
 def update_questions():
     if request.method == 'POST':
         question_id = request.form.get('question_id')

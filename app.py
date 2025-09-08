@@ -6,7 +6,7 @@ from flask_uploads import configure_uploads
 from models import Setting, LLM
 from llm import clients
 from config import DEFAULT_CRITERIA
-from routes import dimensions_bp, index_bp, leaderboard_bp, models_bp, questions_bp, settings_bp, public_leaderboard_bp, dev_history_bp, auth_bp
+from routes import dimensions_bp, index_bp, leaderboard_bp, models_bp, questions_bp, settings_bp, public_leaderboard_bp, dev_history_bp, auth_bp, history_bp
 from routes.auth import init_login_manager
 from utils import setup_logging
 
@@ -16,22 +16,8 @@ logger = logging.getLogger('main_app')
 # 2. 创建一个 UploadSet
 # 'icons' 是这个集合的名字，IMAGES 是一个预设的包含常见图片扩展名的元组
 
-def create_app():
-    logger.info("Flask app creation started.")
-    app = Flask(__name__)
-    app.config.from_pyfile('config.py')
+def register_blueprints(app):
     
-    configure_uploads(app, icons)
-    
-    csrf.init_app(app)
-    init_login_manager(app)
-
-    logger.info("Initializing database.")
-    db.init_app(app)
-    
-    migrate.init_app(app, db)
-    
-    logger.info("Registering blueprints.")
     app.register_blueprint(dimensions_bp)
     app.register_blueprint(index_bp)
     app.register_blueprint(leaderboard_bp)
@@ -41,6 +27,37 @@ def create_app():
     app.register_blueprint(public_leaderboard_bp)
     app.register_blueprint(dev_history_bp)
     app.register_blueprint(auth_bp)
+    app.register_blueprint(history_bp)
+
+def initialize():
+    
+    logger.info("Flask app creation started.")
+    app = Flask(__name__)
+    app.config.from_pyfile('config.py')
+    
+    # logger.info("Configuring uploads.")
+    configure_uploads(app, icons)
+    
+    logger.info("Initializing csrf.")
+    csrf.init_app(app)
+    
+    # logger.info("Initializing login manager.")
+    init_login_manager(app)
+
+    logger.info("Initializing database.")
+    db.init_app(app)
+    
+    # logger.info("Migrating database.")
+    migrate.init_app(app, db)
+    
+    logger.info("Registering blueprints.")
+    register_blueprints(app)
+    
+    return app
+
+
+def create_app():
+    app = initialize()
     
     with app.app_context():
         logger.info("Creating all database tables.")

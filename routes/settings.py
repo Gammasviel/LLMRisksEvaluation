@@ -3,6 +3,8 @@ from models import Setting
 from extensions import db
 from forms import SettingForm
 from config import DEFAULT_CRITERIA
+from .auth import admin_required
+from flask_login import login_required
 import logging
 
 settings_bp = Blueprint('settings', __name__, url_prefix='/dev/settings')
@@ -10,6 +12,8 @@ logger = logging.getLogger('setting_routes')
 
 
 @settings_bp.route('/', methods=['GET', 'POST'])
+@login_required
+@admin_required
 def settings():
     objective_setting = Setting.query.filter_by(question_type='objective').first()
     subjective_setting = Setting.query.filter_by(question_type='subjective').first()

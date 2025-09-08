@@ -6,11 +6,15 @@ from models import EvaluationHistory, Question
 from extensions import db
 from config import RATERS, QUADRANT_SCORE_THRESHOLD, QUADRANT_RESPONSE_RATE_THRESHOLD
 from utils import generate_leaderboard_data
+from .auth import admin_required
+from flask_login import login_required
 
 dev_history_bp = Blueprint('dev_history', __name__)
 logger = logging.getLogger('dev_history_routes')
 
 @dev_history_bp.route('/dev/history')
+@login_required
+@admin_required
 def dev_history():
     """开发版历史记录页面"""
     logger.info("Accessing dev history page.")

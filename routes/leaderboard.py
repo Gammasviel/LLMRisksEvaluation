@@ -3,12 +3,16 @@ from sqlalchemy.orm import aliased
 from models import Dimension, Rating, Setting, Answer, Question, LLM
 from extensions import db
 from utils import calculate_weighted_average # <-- 1. Import the new function
+from .auth import admin_required
+from flask_login import login_required
 import logging
 
 leaderboard_bp = Blueprint('leaderboard', __name__, url_prefix='/dev/leaderboard')
 logger = logging.getLogger('leaderboard_routes')
 
 @leaderboard_bp.route('/')
+@login_required
+@admin_required
 def leaderboard():
     # Get filter parameters
     level1_id = request.args.get('level1', type=int)
