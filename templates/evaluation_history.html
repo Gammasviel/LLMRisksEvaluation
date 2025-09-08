@@ -261,7 +261,7 @@
                     <i class="bi bi-search"></i>
                     筛选
                 </button>
-                <a href="{{ url_for('public_leaderboard.evaluation_history') }}" class="clear-btn">
+                <a href="{{ url_for('history.evaluation_history') }}" class="clear-btn">
                     <i class="bi bi-x-circle"></i>
                     清除
                 </a>
@@ -281,7 +281,7 @@
                             评估快照记录 #{{ record.id }}
                         </div>
                     </div>
-                    <a href="{{ url_for('public_leaderboard.history_detail', history_id=record.id) }}" class="view-detail-btn">
+                    <a href="{{ url_for('history.history_detail', history_id=record.id) }}" class="view-detail-btn">
                         <i class="bi bi-eye"></i>
                         查看详情
                     </a>

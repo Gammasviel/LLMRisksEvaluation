@@ -87,4 +87,4 @@ def history_detail(history_id):
     except Exception as e:
         logger.error(f"Error loading history detail {history_id}: {e}", exc_info=True)
         flash('加载历史记录详情时发生错误。', 'danger')
-        return redirect(url_for('public_leaderboard.evaluation_history'))
+        return redirect(url_for('history.evaluation_history'))
