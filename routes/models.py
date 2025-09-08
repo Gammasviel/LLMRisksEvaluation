@@ -1,14 +1,13 @@
 # .\routes\models.py
 import os
 from flask import Blueprint, render_template, flash, redirect, url_for, request, current_app
-# 1. 移除不再需要的 werkzeug 和 os
 from models import LLM
 from extensions import db
 from forms import LLMForm
 from llm import clients
 import logging
-# 2. 从 app 模块导入我们创建的 icons UploadSet
 from extensions import icons
+import hashlib
 
 models_bp = Blueprint('models', __name__, url_prefix='/dev/model')
 logger = logging.getLogger('model_routes')
