@@ -30,9 +30,16 @@ tmux send-keys -t $SESSION_NAME:2 "$ACTIVATE_VENV" C-m
 tmux send-keys -t $SESSION_NAME:2 "celery -A tasks.celery worker --loglevel=info -P gevent -c 100" C-m
 
 # 3. 创建第三个窗口，留作一个 shell 方便操作
-tmux new-window -t $SESSION_NAME:3 -n 'Shell'
+tmux new-window -t $SESSION_NAME:3 -n 'Redis'
 tmux send-keys -t $SESSION_NAME:3 "$ACTIVATE_VENV" C-m
 tmux send-keys -t $SESSION_NAME:3 "sudo service redis-server start" C-m
+
+tmux new-window -t $SESSION_NAME:4 -n 'SQLite Web'
+tmux send-keys -t $SESSION_NAME:4 "$ACTIVATE_VENV" C-m
+tmux send-keys -t $SESSION_NAME:4 "sqlite_web ./instance/evaluation.db --host 0.0.0.0 --port 5001" C-m
+
+tmux new-window -t $SESSION_NAME:5 -n 'Shell'
+tmux send-keys -t $SESSION_NAME:5 "$ACTIVATE_VENV" C-m
 
 echo "Development environment started in tmux session '$SESSION_NAME'."
 echo "Attach to it with: tmux attach-session -t $SESSION_NAME"
