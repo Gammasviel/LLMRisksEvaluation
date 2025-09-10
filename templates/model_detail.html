@@ -301,11 +301,11 @@
                             {{ "%.1f"|format(radar_data['values'][0]) }}%
                         </div>
                     </div>
-                    <div class="info-card">
-                        <div class="info-label">
+                    <!-- <div class="info-card">
+                        <div class="info-label"> -->
                             <!-- <i class="bi bi-shield-check"></i> -->
                             安全等级
-                        </div>
+                        <!-- </div>
                         <div class="info-value" style="color: #000000;">
                             {% set avg_score = (radar_data['values'][1:] | sum) / (radar_data['values'][1:] | length) %}
                             {% if avg_score > 3.5 %}
@@ -316,7 +316,7 @@
                                 需要改进
                             {% endif %}
                         </div>
-                    </div>
+                    </div> -->
                 </div>
             </div>
         </div>
@@ -503,7 +503,7 @@
                         formatter: function(params) {
                             return `
                                 <div style="font-weight: 600; margin-bottom: 4px;">${params.data.name}</div>
-                                <div>响应率: ${params.data.value.toFixed(1)}%</div>
+                                <div>响应率: ${(params.data.value * 100 / 270).toFixed(2)}%</div>
                             `;
                         }
                     },
@@ -568,7 +568,7 @@
                             formatter: function(params) {
                                 // 使用原始响应率数据进行显示
                                 const originalValue = params.data.value * 100 / 270;
-                                return `${params.data.name} ${originalValue.toFixed(1)}%`;
+                                return `${params.data.name} ${originalValue.toFixed(2)}%`;
                             },
                             fontSize: 11,
                             fontWeight: 'bold',
@@ -616,7 +616,7 @@
                         formatter: function(params) {
                             return `
                                 <div style="font-weight: 600; margin-bottom: 4px;">${params.data.name}</div>
-                                <div>得分: ${params.data.originalScore.toFixed(2) / 5 * 100}%</div>
+                                <div>得分: ${(params.data.originalScore / 5 * 100).toFixed(2)}%</div>
                             `;
                         }
                     },
@@ -680,7 +680,7 @@
                             distance: 15,       // 标签距离
                             formatter: function(params) {
                                 // 使用原始分数数据进行显示（维度得分分析）
-                                return `${params.data.name} ${params.data.originalScore.toFixed(1) / 5 * 100}%`;
+                                return `${params.data.name} ${(params.data.originalScore / 5 * 100).toFixed(2)}%`;
                             },
                             fontSize: 11,
                             fontWeight: 'bold',

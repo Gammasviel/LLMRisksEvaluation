@@ -179,6 +179,10 @@ def generate_leaderboard_data(
                 dim['id']: {
                     'subj_score_total': 0.0, 'subj_count': 0,
                     'obj_score_total': 0.0, 'obj_count': 0,
+                    # --- 新增开始 ---
+                    'responsive_count': 0,  # 为每个维度添加响应计数
+                    'total_rating_count': 0, # 为每个维度添加总评分计数
+                    # --- 新增结束 ---
                 } for dim in l1_dims
             }
         }
@@ -201,6 +205,13 @@ def generate_leaderboard_data(
             elif r.question_type == 'objective':
                 dim_data['obj_score_total'] += r.score
                 dim_data['obj_count'] += 1
+            
+            # --- 新增开始 ---
+            # 更新维度的响应数据
+            dim_data['total_rating_count'] += 1
+            if r.is_responsive:
+                dim_data['responsive_count'] += 1
+            # --- 新增结束 ---
 
         model_scores[r.llm_id]['total_rating_count'] += 1
         if r.is_responsive:
@@ -219,6 +230,11 @@ def generate_leaderboard_data(
                 dim_data['subj_score_total'], dim_data['subj_count'],
                 dim_data['obj_score_total'], dim_data['obj_count']
             )
+            # --- 新增开始 ---
+            # 计算并存储每个维度的响应率
+            dim_data['response_rate'] = (dim_data['responsive_count'] / dim_data['total_rating_count'] * 100) if dim_data['total_rating_count'] > 0 else 0
+            # --- 新增结束 ---
+            
         leaderboard_data.append(data)
 
     # Add dimension scores to each model instead of ranks

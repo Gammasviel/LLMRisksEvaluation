@@ -156,9 +156,15 @@ def model_detail(model_name):
     for dim in full_leaderboard_data['l1_dimensions']:
         dim_data = model_data['dim_scores'][dim['id']]
         total_count = dim_data['subj_count'] + dim_data['obj_count']
-        # 简单使用总体响应率作为各维度响应率的近似值
-        # 这里可以根据实际需求调整计算逻辑
-        response_rate = model_data['response_rate'] if total_count > 0 else 0
+        
+        # --- 修改开始 ---
+        # 原来的代码使用了总体的响应率作为近似值
+        # response_rate = model_data['response_rate'] if total_count > 0 else 0
+        
+        # 使用新计算的、精确的各维度响应率
+        response_rate = dim_data.get('response_rate', 0) if total_count > 0 else 0
+        # --- 修改结束 ---
+        
         response_rate_data.append({'name': dim['name'], 'value': response_rate})
 
     return render_template(
@@ -167,6 +173,6 @@ def model_detail(model_name):
         model_rank=model_rank,
         radar_data=radar_data,
         bar_data=bar_data,
-        response_rate_data=response_rate_data,  # 新增各维度响应率数据
+        response_rate_data=response_rate_data,  # 传递更新后的各维度响应率数据
         icons=icons
     )
