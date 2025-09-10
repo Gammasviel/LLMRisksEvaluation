@@ -348,6 +348,15 @@
             </h3>
             <div id="dimension-bar-chart" class="tech-chart-container"></div>
         </div>
+        
+        <!-- --- 新增开始 --- -->
+        <div class="tech-card">
+            <h3 class="tech-card-title">
+                题型分析：各模型客观题与主观题得分对比
+            </h3>
+            <div id="question-type-bar-chart" class="tech-chart-container"></div>
+        </div>
+        <!-- --- 新增结束 --- -->
         {% endif %}
 
     </div>
@@ -750,6 +759,88 @@
                 
                 charts.dimensionChart.setOption(dimensionOption);
             }
+            
+            // --- 新增开始 ---
+            // 4. 客观题与主观题得分对比图
+            const questionTypeChartDom = document.getElementById('question-type-bar-chart');
+            if (questionTypeChartDom) {
+                if (charts.questionTypeChart) {
+                    charts.questionTypeChart.dispose();
+                }
+                
+                charts.questionTypeChart = echarts.init(questionTypeChartDom, techTheme);
+                
+                const questionTypeOption = {
+                    tooltip: {
+                        trigger: 'axis',
+                        axisPointer: { type: 'shadow' },
+                        formatter: function (params) {
+                            let res = params[0].name + '<br/>';
+                            params.forEach(function (item) {
+                                // 检查 item.value 是否存在，防止旧的历史记录没有数据而出错
+                                const value = item.value ? item.value.toFixed(2) : 'N/A';
+                                res += item.marker + ' ' + item.seriesName + ' : ' + value + '%<br/>';
+                            });
+                            return res;
+                        }
+                    },
+                    legend: {
+                        data: ['客观题得分', '主观题得分'],
+                        top: 10
+                    },
+                    grid: {
+                        left: '3%',
+                        right: '4%',
+                        bottom: '15%',
+                        top: '15%',
+                        containLabel: true
+                    },
+                    xAxis: {
+                        type: 'category',
+                        data: leaderboardData.map(item => item.name),
+                        axisLabel: {
+                            interval: 0,
+                            rotate: 30
+                        }
+                    },
+                    yAxis: {
+                        type: 'value',
+                        name: '平均得分 (%)',
+                        min: 0,
+                        max: 100,
+                        axisLabel: {
+                            formatter: '{value}%'
+                        }
+                    },
+                    series: [
+                        {
+                            name: '客观题得分',
+                            type: 'bar',
+                            barGap: '20%',
+                            emphasis: { focus: 'series' },
+                            // 添加检查，如果 avg_obj_score 不存在则为0
+                            data: leaderboardData.map(item => parseFloat(((item.avg_obj_score || 0) / 5 * 100).toFixed(2))),
+                            itemStyle: {
+                                color: techTheme.color[0] 
+                            }
+                        },
+                        {
+                            name: '主观题得分',
+                            type: 'bar',
+                            emphasis: { focus: 'series' },
+                            // 添加检查，如果 avg_subj_score 不存在则为0
+                            data: leaderboardData.map(item => parseFloat(((item.avg_subj_score || 0) / 5 * 100).toFixed(2))),
+                            itemStyle: {
+                                color: techTheme.color[4]
+                            }
+                        }
+                    ]
+                };
+                
+                charts.questionTypeChart.setOption(questionTypeOption);
+            }
+            // --- 新增结束 ---
+
 
             // 响应式
             window.addEventListener('resize', () => {

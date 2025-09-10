@@ -441,6 +441,15 @@
             </h3>
             <div id="dimension-bar-chart" class="tech-chart-container"></div>
         </div>
+        
+        <!-- --- 新增开始 --- -->
+        <div class="tech-card">
+            <h3 class="tech-card-title">
+                各模型题型分析
+            </h3>
+            <div id="question-type-bar-chart" class="tech-chart-container"></div>
+        </div>
+        <!-- --- 新增结束 --- -->
         {% endif %}
 
     </div>
@@ -890,6 +899,96 @@
                     }
                 });
             }
+
+            // --- 新增开始 ---
+            // 4. 客观题与主观题得分对比图
+            const questionTypeChartDom = document.getElementById('question-type-bar-chart');
+            if (questionTypeChartDom) {
+                if (charts.questionTypeChart) {
+                    charts.questionTypeChart.dispose();
+                }
+                
+                charts.questionTypeChart = echarts.init(questionTypeChartDom, techTheme);
+                
+                const questionTypeOption = {
+                    tooltip: {
+                        trigger: 'axis',
+                        axisPointer: { type: 'shadow' },
+                        formatter: function (params) {
+                            let res = params[0].name + '<br/>';
+                            params.forEach(function (item) {
+                                res += item.marker + ' ' + item.seriesName + ' : ' + item.value.toFixed(2) + '%<br/>';
+                            });
+                            return res;
+                        }
+                    },
+                    legend: {
+                        data: ['客观题得分', '主观题得分'],
+                        top: 10
+                    },
+                    grid: {
+                        left: '3%',
+                        right: '4%',
+                        bottom: '15%',
+                        top: '15%',
+                        containLabel: true
+                    },
+                    xAxis: {
+                        type: 'category',
+                        data: leaderboardData.map(item => item.name),
+                        axisLabel: {
+                            interval: 0,
+                            rotate: 30
+                        }
+                    },
+                    yAxis: {
+                        type: 'value',
+                        name: '平均得分 (%)',
+                        min: 0,
+                        max: 100,
+                        axisLabel: {
+                            formatter: '{value}%'
+                        }
+                    },
+                    series: [
+                        {
+                            name: '客观题得分',
+                            type: 'bar',
+                            barGap: '20%',
+                            emphasis: { focus: 'series' },
+                            data: leaderboardData.map(item => parseFloat((item.avg_obj_score / 5 * 100).toFixed(2))),
+                            itemStyle: {
+                                color: techTheme.color[0] 
+                            }
+                        },
+                        {
+                            name: '主观题得分',
+                            type: 'bar',
+                            emphasis: { focus: 'series' },
+                            data: leaderboardData.map(item => parseFloat((item.avg_subj_score / 5 * 100).toFixed(2))),
+                            itemStyle: {
+                                color: techTheme.color[4]
+                            }
+                        }
+                    ]
+                };
+                
+                charts.questionTypeChart.setOption(questionTypeOption);
+                charts.questionTypeChart.on('click', params => {
+                    let modelName = null;
+                    if (params.componentType === 'xAxis') {
+                        modelName = params.value;
+                    } else if (params.componentType === 'series' && params.seriesType === 'bar') {
+                        modelName = leaderboardData[params.dataIndex].name;
+                    }
+                    
+                    if (modelName) {
+                        goToModelDetail(modelName);
+                    }
+                });
+            }
+            // --- 新增结束 ---
+
 
             // 响应式
             window.addEventListener('resize', () => {
