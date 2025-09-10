@@ -357,16 +357,16 @@
         <div class="chart-grid">
             <div class="tech-card">
                 <h3 class="tech-card-title">
-                    <!-- <i class="bi bi-radar-chart neon-glow" style="color: var(--tech-accent-purple);"></i> -->
-                    综合能力雷达图
+                    <!-- <i class="bi bi-speedometer2 neon-glow" style="color: var(--tech-accent-purple);"></i> -->
+                    各维度响应率分析
                 </h3>
-                <div id="radar-chart" class="tech-chart-container"></div>
+                <div id="response-efficiency-chart" class="tech-chart-container"></div>
             </div>
             
             <div class="tech-card">
                 <h3 class="tech-card-title">
                     <!-- <i class="bi bi-pie-chart neon-glow" style="color: var(--tech-accent-pink);"></i> -->
-                    维度得分分布
+                    各维度得分分析
                 </h3>
                 <div id="pie-chart" class="tech-chart-container"></div>
             </div>
@@ -440,6 +440,7 @@
     document.addEventListener('DOMContentLoaded', function() {
         const radarData = {{ radar_data|tojson }};
         const pieData = {{ bar_data|tojson }};
+        const responseRateData = {{ response_rate_data|tojson }};  // 新增各维度响应率数据
         
         // 存储图表实例
         let charts = {};
@@ -476,124 +477,115 @@
                 }
             };
 
-            // 1. 雷达图
-            const radarChartDom = document.getElementById('radar-chart');
-            if (radarChartDom) {
-                if (charts.radarChart) {
-                    charts.radarChart.dispose();
+            // 1. 各维度响应效能分析图 - 使用径向进度条
+            const responseChartDom = document.getElementById('response-efficiency-chart');
+            if (responseChartDom) {
+                if (charts.responseChart) {
+                    charts.responseChart.dispose();
                 }
                 
-                charts.radarChart = echarts.init(radarChartDom, techTheme);
+                charts.responseChart = echarts.init(responseChartDom, techTheme);
 
-                // Convert score to percentage
-                radarData.values = radarData.values.map((value, index) => {
-                    if (index > 0) { // Skip response rate which is already a percentage
-                        return (value / radarData.indicators[index].max) * 100;
-                    }
-                    return value;
+                // 准备径向进度条数据 - 使用各维度响应率数据
+                const responseData = responseRateData.map((item, index) => {
+                    return {
+                        name: item.name,
+                        value: item.value,  // 直接使用响应率百分比
+                        itemStyle: {
+                            color: techTheme.color[index % techTheme.color.length]
+                        }
+                    };
                 });
 
-                // Update indicator max values to 100 for scores
-                radarData.indicators.forEach((indicator, index) => {
-                    if (index > 0) {
-                        indicator.max = 100;
-                    }
-                });
-                
-                const radarOption = {
+                const responseOption = {
                     tooltip: {
                         trigger: 'item',
                         formatter: function(params) {
-                            let tooltipStr = `<div style="font-weight: 600; margin-bottom: 8px;">${params.name}</div>`;
-                            const indicators = radarData.indicators;
-                            const values = params.data.value;
-                            for (let i = 0; i < indicators.length; i++) {
-                                const color = values[i] >= indicators[i].max * 0.8 ? techTheme.color[3] : 
-                                            values[i] >= indicators[i].max * 0.6 ? techTheme.color[4] : techTheme.color[2];
-                                tooltipStr += `
-                                    <div style="display: flex; justify-content: space-between; align-items: center; margin: 4px 0;">
-                                        <span>${indicators[i].name}:</span>
-                                        <span style="color: ${color}; font-weight: 600; margin-left: 20px;">
-                                            ${values[i].toFixed(2)}%
-                                        </span>
-                                    </div>
-                                `;
-                            }
-                            return tooltipStr;
+                            return `
+                                <div style="font-weight: 600; margin-bottom: 4px;">${params.data.name}</div>
+                                <div>响应率: ${params.data.value.toFixed(1)}%</div>
+                            `;
                         }
                     },
-                    radar: {
-                        indicator: radarData.indicators,
-                        shape: 'polygon',
-                        splitNumber: 4,
-                        axisName: {
-                            color: techTheme.textStyle.color,
-                            fontSize: 12
+                    polar: {
+                        radius: ['20%', '80%']
+                    },
+                    radiusAxis: {
+                        type: 'category',
+                        data: responseData.map(item => item.name),
+                        axisLabel: {
+                            show: false
+                        },
+                        axisLine: {
+                            show: false
+                        },
+                        axisTick: {
+                            show: false
+                        }
+                    },
+                    angleAxis: {
+                        type: 'value',
+                        max: 360,  // 最大角度为360度
+                        startAngle: 90,
+                        clockwise: true,
+                        axisLabel: {
+                            show: true,  // 显示角度刻度标签
+                            formatter: function(value) {
+                                const percentage = (value * 100 / 270);
+                                // 只显示不超过100%的刻度，270度处显示100%
+                                return percentage <= 100 ? percentage.toFixed(0) + '%' : '';
+                            },
+                            fontSize: 10,
+                            color: '#000000'
                         },
                         splitLine: {
+                            show: true,
                             lineStyle: {
-                                color: techTheme.categoryAxis.splitLine.lineStyle.color
-                            }
-                        },
-                        splitArea: {
-                            areaStyle: {
-                                color: ['rgba(124, 58, 237, 0.02)', 'rgba(124, 58, 237, 0.04)',
-                                        'rgba(124, 58, 237, 0.06)', 'rgba(124, 58, 237, 0.08)']
+                                color: 'rgba(203, 213, 225, 0.3)',
+                                width: 1
                             }
                         },
                         axisLine: {
-                            lineStyle: {
-                                color: techTheme.categoryAxis.axisLine.lineStyle.color
-                            }
+                            show: false
+                        },
+                        axisTick: {
+                            show: false
                         }
                     },
                     series: [{
-                        name: '{{ llm.name }}',
-                        type: 'radar',
-                        symbol: 'circle',
-                        symbolSize: 8,
-                        lineStyle: {
-                            width: 3,
-                            color: techTheme.color[0],
-                            shadowBlur: 10,
-                            shadowColor: techTheme.color[0] + '80'
-                        },
-                        itemStyle: {
-                            color: techTheme.color[0],
-                            borderColor: '#fff',
-                            borderWidth: 2,
-                            shadowBlur: 10,
-                            shadowColor: techTheme.color[0] + '80'
-                        },
-                        areaStyle: {
-                            color: {
-                                type: 'radial',
-                                x: 0.5,
-                                y: 0.5,
-                                r: 0.5,
-                                colorStops: [{
-                                    offset: 0, color: techTheme.color[0] + '40'
-                                }, {
-                                    offset: 1, color: techTheme.color[1] + '20'
-                                }]
-                            }
-                        },
-                        data: [{
-                            value: radarData.values,
-                            name: '{{ llm.name }}'
-                        }],
-                        emphasis: {
-                            lineStyle: {
-                                width: 4
+                        type: 'bar',
+                        coordinateSystem: 'polar',
+                        data: responseData.map(item => ({
+                            ...item,
+                            value: item.value * 270 / 100  // 将百分比映射到360度
+                        })),
+                        barWidth: '60%',
+                        roundCap: true,
+                        label: {
+                            show: true,
+                            position: 'start',  // 标签位置在起始点
+                            distance: 15,       // 标签距离
+                            formatter: function(params) {
+                                // 使用原始响应率数据进行显示
+                                const originalValue = params.data.value * 100 / 270;
+                                return `${params.data.name} ${originalValue.toFixed(1)}%`;
                             },
+                            fontSize: 11,
+                            fontWeight: 'bold',
+                            color: techTheme.textStyle.color,
+                            align: 'right'      // 右对齐
+                        },
+                        emphasis: {
                             itemStyle: {
-                                symbolSize: 12
+                                shadowBlur: 10,
+                                shadowOffsetX: 0,
+                                shadowColor: 'rgba(0, 0, 0, 0.5)'
                             }
                         }
                     }]
                 };
                 
-                charts.radarChart.setOption(radarOption);
+                charts.responseChart.setOption(responseOption);
             }
 
             // 2. 饼图
@@ -605,117 +597,107 @@
                 
                 charts.pieChart = echarts.init(pieChartDom, techTheme);
                 
-                // 使用主题色彩
-                const pieDataWithStyle = pieData.map((item, index) => ({
-                    ...item,
-                    itemStyle: {
-                        color: techTheme.color[[0, 2, 4, 6, 8, 1, 3, 5, 7, 9][index % 10]]
-                    }
-                }));
-                
-                const pieOption = {
+                // 准备径向进度条数据 - 不需要排除数据（因为原始数据第一个元素不是总得分）
+                const scoreData = pieData.map((item, index) => {
+                    const percentageValue = (item.value / 5 * 100); // 将0-5分转换为百分制
+                    return {
+                        name: item.name,
+                        value: percentageValue, // 存储百分比值
+                        originalScore: item.value, // 保存原始分数
+                        itemStyle: {
+                            color: techTheme.color[index % techTheme.color.length]
+                        }
+                    };
+                });
+
+                const scoreOption = {
                     tooltip: {
                         trigger: 'item',
                         formatter: function(params) {
-                            const score = params.value.toFixed(2);
                             return `
-                                <div style="font-weight: 600; margin-bottom: 4px;">${params.name}</div>
-                                <div>得分: ${score}</div>
-                                <div>占比: ${params.percent}%</div>
+                                <div style="font-weight: 600; margin-bottom: 4px;">${params.data.name}</div>
+                                <div>得分: ${params.data.originalScore.toFixed(2) / 5 * 100}%</div>
                             `;
                         }
                     },
-                    legend: {
-                        orient: 'vertical',
-                        left: 'left',
-                        top: 'center',
-                        icon: 'circle'
+                    polar: {
+                        radius: ['20%', '80%']
                     },
-                    series: [{
-                        name: '维度得分分布',
-                        type: 'pie',
-                        radius: ['40%', '70%'],
-                        center: ['50%', '50%'],
-                        data: pieDataWithStyle,
-                        label: {
-                            show: true,
-                            formatter: '{b}: {d}%',
-                            fontSize: 14,
-                            fontWeight: 'bold',
-                            color: techTheme.textStyle.color,  // 使用主题文本颜色
-                            textBorderColor: 'transparent',     // 去除描边
-                            textBorderWidth: 0,                 // 描边宽度为0
-                            textShadowColor: 'transparent',     // 去除阴影
-                            textShadowBlur: 0                   // 阴影模糊度为0
+                    radiusAxis: {
+                        type: 'category',
+                        data: scoreData.map(item => item.name),
+                        axisLabel: {
+                            show: false
                         },
-                        emphasis: {
-                            label: {
-                                show: true,
-                                fontSize: 16,
-                                fontWeight: 'bold',
-                                color: techTheme.textStyle.color,  // emphasis状态也要设置
-                                textBorderColor: 'transparent',     
-                                textBorderWidth: 0,
-                                textShadowColor: 'transparent',
-                                textShadowBlur: 0
-                            }
+                        axisLine: {
+                            show: false
                         },
-                        labelLine: {
+                        axisTick: {
+                            show: false
+                        }
+                    },
+                    angleAxis: {
+                        type: 'value',
+                        max: 360,  // 最大角度为360度
+                        startAngle: 90,
+                        clockwise: true,
+                        axisLabel: {
+                            show: true,  // 显示角度刻度标签
+                            formatter: function(value) {
+                                const percentage = (value * 100 / 270);
+                                // 只显示不超过100%的刻度，270度处显示100%
+                                return percentage <= 100 ? percentage.toFixed(0) + '%' : '';
+                            },
+                            fontSize: 10,
+                            color: '#000000'
+                        },
+                        splitLine: {
                             show: true,
                             lineStyle: {
-                                color: techTheme.textStyle.color   // 标签连接线也使用主题颜色
+                                color: 'rgba(203, 213, 225, 0.3)',
+                                width: 1
+                            }
+                        },
+                        axisLine: {
+                            show: false
+                        },
+                        axisTick: {
+                            show: false
+                        }
+                    },
+                    series: [{
+                        type: 'bar',
+                        coordinateSystem: 'polar',
+                        data: scoreData.map(item => ({
+                            ...item,
+                            value: item.value * 270 / 100  // 将百分制映射到360度
+                        })),
+                        barWidth: '60%',
+                        roundCap: true,
+                        label: {
+                            show: true,
+                            position: 'start',  // 标签位置在起始点
+                            distance: 15,       // 标签距离
+                            formatter: function(params) {
+                                // 使用原始分数数据进行显示（维度得分分析）
+                                return `${params.data.name} ${params.data.originalScore.toFixed(1) / 5 * 100}%`;
+                            },
+                            fontSize: 11,
+                            fontWeight: 'bold',
+                            color: techTheme.textStyle.color,
+                            align: 'right'      // 右对齐
+                        },
+                        emphasis: {
+                            itemStyle: {
+                                shadowBlur: 10,
+                                shadowOffsetX: 0,
+                                shadowColor: 'rgba(0, 0, 0, 0.5)'
                             }
                         }
                     }]
                 };
                 
-                charts.pieChart.setOption(pieOption);
-                
-                // 添加交互动画
-                let autoRotateInterval = setInterval(() => {
-                    const dataLen = pieData.length;
-                    const currentIndex = Math.floor(Math.random() * dataLen);
-                    
-                    charts.pieChart.dispatchAction({
-                        type: 'highlight',
-                        seriesIndex: 0,
-                        dataIndex: currentIndex
-                    });
-                    
-                    setTimeout(() => {
-                        charts.pieChart.dispatchAction({
-                            type: 'downplay',
-                            seriesIndex: 0,
-                            dataIndex: currentIndex
-                        });
-                    }, 1000);
-                }, 2000);
-                
-                // 鼠标悬停时停止自动动画
-                pieChartDom.addEventListener('mouseenter', () => {
-                    clearInterval(autoRotateInterval);
-                });
-                
-                pieChartDom.addEventListener('mouseleave', () => {
-                    autoRotateInterval = setInterval(() => {
-                        const dataLen = pieData.length;
-                        const currentIndex = Math.floor(Math.random() * dataLen);
-                        
-                        charts.pieChart.dispatchAction({
-                            type: 'highlight',
-                            seriesIndex: 0,
-                            dataIndex: currentIndex
-                        });
-                        
-                        setTimeout(() => {
-                            charts.pieChart.dispatchAction({
-                                type: 'downplay',
-                                seriesIndex: 0,
-                                dataIndex: currentIndex
-                            });
-                        }, 1000);
-                    }, 2000);
-                });
+                charts.pieChart.setOption(scoreOption);
             }
 
             // 响应式
@@ -737,7 +719,5 @@
         // });
     });
     </script>
-</body>
-</html>t>
 </body>
 </html>

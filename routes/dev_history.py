@@ -4,7 +4,7 @@ from flask import Blueprint, render_template, request, flash, redirect, url_for
 import logging
 from models import EvaluationHistory, Question
 from extensions import db
-from config import RATERS, QUADRANT_SCORE_THRESHOLD, QUADRANT_RESPONSE_RATE_THRESHOLD
+from config import QUADRANT_SCORE_THRESHOLD, QUADRANT_RESPONSE_RATE_THRESHOLD
 from utils import generate_leaderboard_data
 from .auth import admin_required
 from flask_login import login_required
@@ -58,8 +58,7 @@ def save_current_data_to_history():
     
     try:
         # 获取当前评估数据
-        rater_names = [rater for raters in RATERS.values() for rater in raters]
-        current_data = generate_leaderboard_data(rater_names)
+        current_data = generate_leaderboard_data()
         
         # 获取题目总数
         total_questions = Question.query.count()

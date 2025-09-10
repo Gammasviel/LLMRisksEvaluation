@@ -5,6 +5,8 @@ import sys
 from logging.handlers import TimedRotatingFileHandler
 from pathlib import Path
 import datetime
+from config import RATERS
+import json
 
 from models import Answer, Question, Rating, LLM, Dimension
 from extensions import db
@@ -137,7 +139,11 @@ def rate_answer(answer: Answer, question: Question, criteria: str, total_score: 
 
 # --- 4. 公共榜单数据生成工具 ---
 
-def generate_leaderboard_data(rater_names: list[str], sort_by: str = 'avg_score', sort_order: str = 'desc') -> dict:
+def generate_leaderboard_data(
+    rater_names: list[str] = [rater for raters in RATERS.values() for rater in raters],
+    sort_by: str = 'avg_score',
+    sort_order: str = 'desc'
+) -> dict:
     """Fetches and processes all data required for the public leaderboard."""
     models = LLM.query.filter(LLM.name.notin_(rater_names)).all()
     l1_dims_objects = Dimension.query.filter_by(level=1).order_by(Dimension.id).all()
@@ -246,4 +252,5 @@ def generate_leaderboard_data(rater_names: list[str], sort_by: str = 'avg_score'
         # Default to avg_score sorting if invalid sort_by parameter
         leaderboard_data.sort(key=lambda x: x['avg_score'], reverse=reverse_order)
     
+    json.dump({'leaderboard': leaderboard_data, 'l1_dimensions': l1_dims}, open('./temp/data.json', 'w', encoding='utf-8'))
     return {'leaderboard': leaderboard_data, 'l1_dimensions': l1_dims}

@@ -5,7 +5,6 @@ from flask import Blueprint, render_template, flash, redirect, url_for, request
 from models import Question, LLM, EvaluationHistory
 from extensions import db
 from config import (
-    RATERS, 
     QUADRANT_SCORE_THRESHOLD, 
     QUADRANT_RESPONSE_RATE_THRESHOLD
 )
@@ -26,8 +25,7 @@ def display_public_leaderboard():
     
     try:
         # <-- 2. 路由现在只负责调用工具函数和渲染 -->
-        rater_names = [rater for raters in RATERS.values() for rater in raters]
-        data = generate_leaderboard_data(rater_names, sort_by, sort_order)
+        data = generate_leaderboard_data(sort_by=sort_by, sort_order=sort_order)
         
         return render_template('public_leaderboard.html', 
                                leaderboard=data['leaderboard'], 
@@ -64,8 +62,7 @@ def update_all_models():
         
         # 保存当前评估数据为历史记录
         try:
-            rater_names = [rater for raters in RATERS.values() for rater in raters]
-            current_data = generate_leaderboard_data(rater_names)
+            current_data = generate_leaderboard_data()
             
             # 获取题目总数
             total_questions = Question.query.count()
@@ -105,8 +102,7 @@ def model_detail(model_name):
     llm = LLM.query.filter_by(name=model_name).first_or_404()
     
     # 1. Get full leaderboard data to find the rank and model details
-    rater_names = [rater for raters in RATERS.values() for rater in raters]
-    full_leaderboard_data = generate_leaderboard_data(rater_names)
+    full_leaderboard_data = generate_leaderboard_data()
     
     model_data = None
     model_rank = -1
@@ -155,11 +151,22 @@ def model_detail(model_name):
         for item in bar_data:
             item['percentage'] = (item['value'] / total_score_sum) * 100
 
+    # 4. Prepare data for dimension-wise response rates
+    response_rate_data = []
+    for dim in full_leaderboard_data['l1_dimensions']:
+        dim_data = model_data['dim_scores'][dim['id']]
+        total_count = dim_data['subj_count'] + dim_data['obj_count']
+        # 简单使用总体响应率作为各维度响应率的近似值
+        # 这里可以根据实际需求调整计算逻辑
+        response_rate = model_data['response_rate'] if total_count > 0 else 0
+        response_rate_data.append({'name': dim['name'], 'value': response_rate})
+
     return render_template(
         'model_detail.html', 
         llm=llm,
         model_rank=model_rank,
         radar_data=radar_data,
         bar_data=bar_data,
+        response_rate_data=response_rate_data,  # 新增各维度响应率数据
         icons=icons
     )
