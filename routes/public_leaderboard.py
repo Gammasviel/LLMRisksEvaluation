@@ -1,14 +1,13 @@
-# .\routes\public_leaderboard.py
+# ./routes/public_leaderboard.py
 
 import logging
 from flask import Blueprint, render_template, flash, redirect, url_for, request
-from models import Question, LLM, EvaluationHistory
+from models import Question, LLM, EvaluationHistory, Dimension, Answer, Rating
 from extensions import db
 from config import (
     QUADRANT_SCORE_THRESHOLD, 
     QUADRANT_RESPONSE_RATE_THRESHOLD
 )
-# <-- 1. 导入新的工具函数 -->
 from utils import generate_leaderboard_data
 from extensions import icons
 
@@ -166,6 +165,36 @@ def model_detail(model_name):
         # --- 修改结束 ---
         
         response_rate_data.append({'name': dim['name'], 'value': response_rate})
+    
+    # --- 新增开始: 模型偏见歧视分析 ---
+    bias_analysis_data = []
+    # 1. 查找名为“偏见歧视”的二级维度
+    bias_dim = Dimension.query.filter_by(name='偏见歧视', level=2).first()
+    
+    if bias_dim:
+        # 2. 获取其下的所有三级维度
+        l3_bias_dims = bias_dim.children
+        
+        for l3_dim in l3_bias_dims:
+            # 3. 对每个三级维度，计算当前模型的平均分
+            avg_score_result = db.session.query(
+                db.func.avg(Rating.score)
+            ).join(Answer, Rating.answer_id == Answer.id)\
+             .join(Question, Answer.question_id == Question.id)\
+             .filter(
+                Answer.llm_id == llm.id,
+                Question.dimension_id == l3_dim.id
+             ).scalar()
+            
+            # 只有在有得分的情况下才添加到列表中
+            if avg_score_result is not None:
+                bias_analysis_data.append({
+                    'name': l3_dim.name,
+                    'avg_score': avg_score_result
+                })
+    else:
+        logger.warning("Level 2 Dimension '偏见歧视' not found in the database. Bias analysis will be skipped.")
+    # --- 新增结束 ---
 
     return render_template(
         'model_detail.html', 
@@ -173,6 +202,7 @@ def model_detail(model_name):
         model_rank=model_rank,
         radar_data=radar_data,
         bar_data=bar_data,
-        response_rate_data=response_rate_data,  # 传递更新后的各维度响应率数据
-        icons=icons
+        response_rate_data=response_rate_data,
+        icons=icons,
+        bias_analysis_data=bias_analysis_data  # 将新数据传递给模板
     )

@@ -304,7 +304,7 @@
                     <!-- <div class="info-card">
                         <div class="info-label"> -->
                             <!-- <i class="bi bi-shield-check"></i> -->
-                            安全等级
+                            <!-- 安全等级 -->
                         <!-- </div>
                         <div class="info-value" style="color: #000000;">
                             {% set avg_score = (radar_data['values'][1:] | sum) / (radar_data['values'][1:] | length) %}
@@ -372,54 +372,34 @@
             </div>
         </div>
 
-        <!-- 详细数据 -->
+        {% if bias_analysis_data %}
         <div class="tech-card">
             <h3 class="tech-card-title">
-                <!-- <i class="bi bi-graph-up neon-glow" style="color: var(--tech-accent-yellow);"></i> -->
-                各维度表现详情
+                模型价值观与公平性分析 (偏见歧视分析)
             </h3>
             <div style="overflow-x: auto;">
                 <table class="tech-table">
                     <thead>
                         <tr>
                             <th>评估维度</th>
-                            <th>得分</th>
-                            <th>进度</th>
-                            <th>表现</th>
+                            <th>平均得分</th>
+                            <th style="width: 40%;">表现进度</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {% for indicator in radar_data['indicators'][1:] %}
-                        {% set score = radar_data['values'][loop.index] %}
+                        {% for item in bias_analysis_data %}
                         <tr>
-                            <td style="font-weight: 600;">{{ indicator.name }}</td>
+                            <td style="font-weight: 600;">{{ item.name }}</td>
                             <td>
                                 <span style="font-size: 1.125rem; font-weight: 700; color: #000000;">
-                                    {{ "%.2f%%"|format(score / indicator.max * 100) }}
+                                    {{ "%.2f"|format(item.avg_score) }}
                                 </span>
                             </td>
-                            <td style="width: 40%;">
-                                <div class="tech-progress">
-                                    <div class="tech-progress-bar" style="width: {{ (score / indicator.max * 100) }}%"></div>
-                                </div>
-                            </td>
                             <td>
-                                {% if score >= indicator.max * 0.8 %}
-                                    <!-- <span class="data-label" style="background: rgba(16, 185, 129, 0.1); border-color: var(--tech-accent-green); color: var(--tech-accent-green);">
-                                        <i class="bi bi-check-circle-fill"></i> -->
-                                        <b>优秀</b>
-                                    <!-- </span> -->
-                                {% elif score >= indicator.max * 0.6 %}
-                                    <!-- <span class="data-label" style="background: rgba(245, 158, 11, 0.1); border-color: var(--tech-accent-yellow); color: var(--tech-accent-yellow);">
-                                        <i class="bi bi-exclamation-circle-fill"></i> -->
-                                        <b>良好</b>
-                                    <!-- </span> -->
-                                {% else %}
-                                    <!-- <span class="data-label" style="background: rgba(236, 72, 153, 0.1); border-color: var(--tech-accent-pink); color: var(--tech-accent-pink);">
-                                        <i class="bi bi-x-circle-fill"></i> -->
-                                        <b>需改进</b>
-                                    <!-- </span> -->
-                                {% endif %}
+                                <!-- 假设总分是5分 -->
+                                <div class="tech-progress">
+                                    <div class="tech-progress-bar" style="width: {{ (item.avg_score / 5 * 100) }}%"></div>
+                                </div>
                             </td>
                         </tr>
                         {% endfor %}
@@ -427,6 +407,7 @@
                 </table>
             </div>
         </div>
+        {% endif %}
     </div>
 
     <!-- <footer style="text-align: center; padding: 3rem 0; color: var(--tech-text-muted);">
