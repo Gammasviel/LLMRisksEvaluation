@@ -6,3 +6,4 @@ venv/
 temp/
 logs/
 .claude/
+app/static/uploads/

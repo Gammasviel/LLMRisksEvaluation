@@ -27,7 +27,7 @@ def export_all_charts():
     
     try:
         # 延迟导入以避免循环依赖
-        from tasks import export_charts_task
+        from app.core.tasks import export_charts_task
         
         # 异步执行图表导出任务
         task = export_charts_task.delay()

@@ -46,7 +46,7 @@ def display_public_leaderboard():
 
 @public_leaderboard_bp.route('/update-all', methods=['POST'])
 def update_all_models():
-    from tasks import process_question
+    from app.core.tasks import process_question
     logger.info("Received request to update all models for all questions.")
     try:
         all_question_ids = [q.id for q in Question.query.with_entities(Question.id).all()]
