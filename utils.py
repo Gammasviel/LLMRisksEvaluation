@@ -266,5 +266,48 @@ def generate_leaderboard_data(
         # Default to avg_score sorting if invalid sort_by parameter
         leaderboard_data.sort(key=lambda x: x['avg_score'], reverse=reverse_order)
     
+    # --- 新增开始: 添加偏见歧视分析数据 ---
+    # 为每个模型添加偏见歧视分析数据
+    bias_dim = Dimension.query.filter_by(name='偏见歧视', level=2).first()
+    if bias_dim:
+        l3_bias_dims = bias_dim.children
+        
+        for model_data in leaderboard_data:
+            model_id = None
+            # 根据模型名称找到模型ID
+            for model in models:
+                if model.name == model_data['name']:
+                    model_id = model.id
+                    break
+            
+            if model_id:
+                bias_analysis = []
+                for l3_dim in l3_bias_dims:
+                    # 计算当前模型在该三级维度的平均分
+                    avg_score_result = db.session.query(
+                        db.func.avg(Rating.score)
+                    ).join(Answer, Rating.answer_id == Answer.id)\
+                     .join(Question, Answer.question_id == Question.id)\
+                     .filter(
+                        Answer.llm_id == model_id,
+                        Question.dimension_id == l3_dim.id
+                     ).scalar()
+                    
+                    # 只有在有得分的情况下才添加到列表中
+                    if avg_score_result is not None:
+                        bias_analysis.append({
+                            'name': l3_dim.name,
+                            'avg_score': avg_score_result
+                        })
+                
+                model_data['bias_analysis_data'] = bias_analysis
+            else:
+                model_data['bias_analysis_data'] = []
+    else:
+        # 如果没有找到偏见歧视维度，为所有模型添加空的偏见分析数据
+        for model_data in leaderboard_data:
+            model_data['bias_analysis_data'] = []
+    # --- 新增结束 ---
+
     json.dump({'leaderboard': leaderboard_data, 'l1_dimensions': l1_dims}, open('./temp/data.json', 'w', encoding='utf-8'))
     return {'leaderboard': leaderboard_data, 'l1_dimensions': l1_dims}
