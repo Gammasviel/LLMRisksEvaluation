@@ -6,6 +6,7 @@ from app.models import Setting, LLM
 from app.core.llm import clients
 from app.config import DEFAULT_CRITERIA
 from app.routes import dimensions_bp, index_bp, leaderboard_bp, models_bp, questions_bp, settings_bp, public_leaderboard_bp, dev_history_bp, auth_bp, history_bp
+from app.core.tasks import celery as celery_app
 
 logger = logging.getLogger('main_app')
 
@@ -36,9 +37,6 @@ def initialize():
     
     logger.info("Initializing csrf.")
     csrf.init_app(app)
-    
-    # logger.info("Initializing login manager.")
-    init_login_manager(app)
 
     logger.info("Initializing database.")
     db.init_app(app)
@@ -58,6 +56,8 @@ def initialize():
 
 def create_app():
     app = initialize()
+    celery_app.config_from_object(app.config.get('CELERY'))
+    celery_app.conf.update(app.config)
     
     with app.app_context():
         logger.info("Creating all database tables.")

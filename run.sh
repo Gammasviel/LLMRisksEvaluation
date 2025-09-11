@@ -27,7 +27,7 @@ tmux send-keys -t $SESSION_NAME:1 "flask run --host=0.0.0.0" C-m
 # 2. 创建第二个窗口，用于运行 Celery Worker
 tmux new-window -t $SESSION_NAME:2 -n 'Celery'
 tmux send-keys -t $SESSION_NAME:2 "$ACTIVATE_VENV" C-m
-tmux send-keys -t $SESSION_NAME:2 "celery -A tasks.celery worker --loglevel=info -P gevent -c 100" C-m
+tmux send-keys -t $SESSION_NAME:2 "celery -A app.core.tasks.celery worker --loglevel=info -P gevent -c 100" C-m
 
 # 3. 创建第三个窗口，留作一个 shell 方便操作
 tmux new-window -t $SESSION_NAME:3 -n 'Redis'

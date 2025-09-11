@@ -1,7 +1,6 @@
 # .\tasks.py
 
 import logging
-from app import create_app
 from app.extensions import db
 from app.models import Question, Answer, Setting, LLM, Rating
 from app.config import DEFAULT_CRITERIA, QUESTION_TEMPLATE, RATERS, DEFAULT_TOTAL_SCORE
@@ -16,10 +15,7 @@ from pathlib import Path
 
 logger = logging.getLogger('celery_tasks')
 
-flask_app = create_app()
-celery = Celery(flask_app.import_name)
-celery.config_from_object(flask_app.config['CELERY'])
-celery.conf.update(flask_app.config)
+celery = Celery('tasks', broker='redis://localhost:6379/0', backend='redis://localhost:6379/0')
 
 celery.conf.beat_schedule = {
     'update-all-models-every-sunday': {
@@ -29,8 +25,13 @@ celery.conf.beat_schedule = {
 }
 
 class ContextTask(celery.Task):
+    _app = None
+
     def __call__(self, *args, **kwargs):
-        with flask_app.app_context():
+        if self._app is None:
+            from app import create_app
+            self._app = create_app()
+        with self._app.app_context():
             return self.run(*args, **kwargs)
 
 celery.Task = ContextTask
