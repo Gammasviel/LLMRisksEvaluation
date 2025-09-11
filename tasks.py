@@ -9,7 +9,10 @@ from llm import clients
 from celery import Celery, group
 from celery.schedules import crontab
 from celery.signals import after_setup_logger
-from utils import setup_logging, rate_answer # <-- 1. 修改导入
+from utils import setup_logging, rate_answer, generate_leaderboard_data
+from chart_export import export_all_charts
+import time
+from pathlib import Path
 
 logger = logging.getLogger('celery_tasks')
 
@@ -149,3 +152,58 @@ def update_all_models_task():
         logger.info(f"[Scheduled Task] Successfully queued updates for {len(all_question_ids)} questions.")
     except Exception as e:
         logger.error(f"[Scheduled Task] Failed to queue update tasks: {e}", exc_info=True)
+
+@celery.task
+def export_charts_task():
+    """
+    导出所有图表到temp/imgs文件夹的celery任务
+    
+    功能说明：
+    1. 创建temp/imgs文件夹（如果不存在）
+    2. 导出公共榜单的所有综合图表
+    3. 导出每个模型的详细分析图表（model_detail页面中的图表）
+    4. 导出偏见歧视分析表格
+    
+    如果安装了Playwright，将生成真实的图表截图
+    否则创建占位符文件用于测试
+    """
+    logger.info("Chart export task started.")
+    
+    try:
+        # 创建temp/imgs文件夹
+        imgs_dir = Path('./temp/imgs')
+        imgs_dir.mkdir(parents=True, exist_ok=True)
+        
+        # 获取所有非评分模型
+        rater_names = [rater for raters in RATERS.values() for rater in raters]
+        models = LLM.query.filter(LLM.name.notin_(rater_names)).all()
+        
+        if not models:
+            logger.warning('No models found for chart export.')
+            return {'success': False, 'message': '没有找到可导出的模型。', 'exported_count': 0}
+        
+        # 生成榜单数据
+        leaderboard_result = generate_leaderboard_data()
+        leaderboard_data = leaderboard_result['leaderboard']
+        l1_dims = leaderboard_result['l1_dimensions']
+        
+        # 开始导出图表
+        timestamp = int(time.time())
+        
+        # 调用chart_export模块的导出函数
+        exported_count = export_all_charts(models, leaderboard_data, l1_dims, imgs_dir, timestamp)
+        
+        logger.info(f"Successfully exported {exported_count} charts to ./temp/imgs/")
+        return {
+            'success': True, 
+            'message': f'成功导出了 {exported_count} 个图表到 ./temp/imgs/ 文件夹。',
+            'exported_count': exported_count
+        }
+        
+    except Exception as e:
+        logger.error(f"Error exporting charts in celery task: {e}", exc_info=True)
+        return {
+            'success': False,
+            'message': '导出图表时发生错误，请检查日志。',
+            'exported_count': 0
+        }
