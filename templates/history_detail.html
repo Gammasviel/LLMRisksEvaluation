@@ -888,4 +888,25 @@
             if (charts[avgScoreChartName]) charts[avgScoreChartName].resize();
         }, 10);
     }
+    
+    // 表格排序功能
+    function sortTable(column) {
+        const currentSortBy = window.currentSortBy;
+        const currentSortOrder = window.currentSortOrder;
+        
+        let newSortOrder = 'desc'; // 默认倒序
+        
+        // 如果点击的是当前排序列，则切换排序顺序
+        if (currentSortBy === column) {
+            newSortOrder = currentSortOrder === 'desc' ? 'asc' : 'desc';
+        }
+        
+        // 构建新的URL
+        const url = new URL(window.location);
+        url.searchParams.set('sort_by', column);
+        url.searchParams.set('sort_order', newSortOrder);
+        
+        // 跳转到新URL
+        window.location.href = url.toString();
+    }
     </script>
