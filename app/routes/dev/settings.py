@@ -2,7 +2,7 @@ from flask import url_for, render_template, Blueprint, redirect, request
 from app.models import Setting
 from app.extensions import db
 from app.forms import SettingForm
-from app.config import DEFAULT_CRITERIA
+from app.core.constants import DEFAULT_CRITERIA
 from app.routes.dev.auth import admin_required
 from flask_login import login_required
 import logging

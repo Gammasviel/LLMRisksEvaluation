@@ -4,7 +4,7 @@ from app.extensions import db, migrate, csrf, icons, login_manager
 from flask_uploads import configure_uploads
 from app.models import Setting, LLM
 from app.core.llm import clients
-from app.config import DEFAULT_CRITERIA
+from app.core.constants import DEFAULT_CRITERIA
 from app.routes import dimensions_bp, index_bp, leaderboard_bp, models_bp, questions_bp, settings_bp, public_leaderboard_bp, dev_history_bp, auth_bp, history_bp, model_detail_bp
 from app.core.tasks import celery as celery_app
 

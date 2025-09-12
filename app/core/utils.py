@@ -9,7 +9,7 @@ import json
 
 from app.models import Answer, Question, Rating, LLM, Dimension
 from app.extensions import db
-from app.config import (
+from app.core.constants import (
     RATERS,
     RATING_TEMPLATE, 
     RATING_FAIL_RETRIES, 
@@ -309,5 +309,4 @@ def generate_leaderboard_data(
             model_data['bias_analysis_data'] = []
     # --- 新增结束 ---
 
-    json.dump({'leaderboard': leaderboard_data, 'l1_dimensions': l1_dims}, open('./temp/data.json', 'w', encoding='utf-8'))
     return {'leaderboard': leaderboard_data, 'l1_dimensions': l1_dims}

@@ -4,7 +4,7 @@ import logging
 from flask import Blueprint, render_template, flash, redirect, url_for, request
 from app.models import Question, EvaluationHistory
 from app.extensions import db
-from app.config import (
+from app.core.constants import (
     QUADRANT_SCORE_THRESHOLD, 
     QUADRANT_RESPONSE_RATE_THRESHOLD
 )

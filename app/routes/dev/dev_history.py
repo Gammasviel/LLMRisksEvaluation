@@ -4,7 +4,7 @@ from flask import Blueprint, render_template, request, flash, redirect, url_for
 import logging
 from app.models import EvaluationHistory, Question
 from app.extensions import db
-from app.config import QUADRANT_SCORE_THRESHOLD, QUADRANT_RESPONSE_RATE_THRESHOLD
+from app.core.constants import QUADRANT_SCORE_THRESHOLD, QUADRANT_RESPONSE_RATE_THRESHOLD
 from app.core.utils import generate_leaderboard_data
 from app.routes.dev.auth import admin_required
 from flask_login import login_required

@@ -1,7 +1,7 @@
 import openai
 import httpx
 import ast  # Import the Abstract Syntax Tree module for safe literal evaluation
-from app.config import CONNECTION_ERROR_RETRIES
+from app.core.constants import CONNECTION_ERROR_RETRIES
 import logging
 
 logger = logging.getLogger('llm_clients')

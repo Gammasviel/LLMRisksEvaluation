@@ -3,7 +3,7 @@
 import logging
 from app.extensions import db
 from app.models import Question, Answer, Setting, LLM, Rating
-from app.config import DEFAULT_CRITERIA, QUESTION_TEMPLATE, RATERS, DEFAULT_TOTAL_SCORE
+from app.core.constants import DEFAULT_CRITERIA, QUESTION_TEMPLATE, RATERS, DEFAULT_TOTAL_SCORE
 from app.core.llm import clients
 from celery import Celery, group
 from celery.schedules import crontab
@@ -169,7 +169,7 @@ def export_charts_task():
     
     try:
         # 创建temp/imgs文件夹
-        imgs_dir = Path('./temp/imgs')
+        imgs_dir = Path('./exports/imgs')
         imgs_dir.mkdir(parents=True, exist_ok=True)
         
         # 获取所有非评分模型
