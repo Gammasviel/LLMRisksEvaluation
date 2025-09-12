@@ -32,31 +32,31 @@
 
 ### 从整体来看
 
-{output_1}
+{overall_analysis_text}
 
 #### 模型综合性能分析
 
-![模型综合性能分析](data:image/png;base64,{img_11})
+![模型综合性能分析](data:image/png;base64,{model_performance_chart_b64})
 
 #### 安全管制策略象限分析
 
-![安全管制策略象限分析](data:image/png;base64,{img_12})
+![安全管制策略象限分析](data:image/png;base64,{quadrant_chart_b64})
 
 ### 从测评的四大维度来看
 
-{output_2}
+{dimension_analysis_text}
 
 #### 各模型维度平均分对比
 
-![各模型维度平均分对比](data:image/png;base64,{img_2})
+![各模型维度平均分对比](data:image/png;base64,{dimension_comparison_chart_b64})
 
 ### 从测评的题型来看
 
-{output_3}
+{question_type_analysis_text}
 
 #### 各模型题型分析
 
-![各模型题型分析](data:image/png;base64,{img_3})
+![各模型题型分析](data:image/png;base64,{question_type_chart_b64})
 
 查看大模型详细评估情况，请点击链接查看
 
