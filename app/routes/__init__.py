@@ -21,5 +21,5 @@ __all__ = [
     'dev_history_bp',
     'auth_bp', 
     'history_bp',
-    'models_bp'
+    'model_detail_bp'
 ]
