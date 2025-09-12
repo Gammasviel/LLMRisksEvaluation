@@ -10,6 +10,7 @@ from celery.schedules import crontab
 from celery.signals import after_setup_logger
 from app.core.utils import setup_logging, rate_answer, generate_leaderboard_data
 from app.core.chart_export import export_all_charts
+from app.core.report_export import export_report
 import time
 from pathlib import Path
 
@@ -154,10 +155,10 @@ def update_all_models_task():
 @celery.task
 def export_charts_task():
     """
-    导出所有图表到temp/imgs文件夹的celery任务
+    导出所有图表到exports/imgs文件夹的celery任务
     
     功能说明：
-    1. 创建temp/imgs文件夹（如果不存在）
+    1. 创建exports/imgs文件夹（如果不存在）
     2. 导出公共榜单的所有综合图表
     3. 导出每个模型的详细分析图表（model_detail页面中的图表）
     4. 导出偏见歧视分析表格
@@ -168,7 +169,7 @@ def export_charts_task():
     logger.info("Chart export task started.")
     
     try:
-        # 创建temp/imgs文件夹
+        # 创建exports/imgs文件夹
         imgs_dir = Path('./exports/imgs')
         imgs_dir.mkdir(parents=True, exist_ok=True)
         
@@ -191,10 +192,10 @@ def export_charts_task():
         # 调用chart_export模块的导出函数
         exported_count = export_all_charts(models, leaderboard_data, l1_dims, imgs_dir, timestamp)
         
-        logger.info(f"Successfully exported {exported_count} charts to ./temp/imgs/")
+        logger.info(f"Successfully exported {exported_count} charts to ./exports/imgs/")
         return {
             'success': True, 
-            'message': f'成功导出了 {exported_count} 个图表到 ./temp/imgs/ 文件夹。',
+            'message': f'成功导出了 {exported_count} 个图表到 ./exports/imgs/ 文件夹。',
             'exported_count': exported_count
         }
         
@@ -204,4 +205,25 @@ def export_charts_task():
             'success': False,
             'message': '导出图表时发生错误，请检查日志。',
             'exported_count': 0
+        }
+
+
+@celery.task
+def export_report_task():
+    """
+    Celery task to export a report for given model_ids.
+    """
+    logger.info(f"Report export task started.")
+    try:
+        export_report()
+        logger.info("Successfully exported report.")
+        return {
+            'success': True, 
+            'message': f'成功导出了报告',
+        }
+    except Exception as e:
+        logger.error(f"Error exporting report in celery task: {e}", exc_info=True)
+        return {
+            'success': False,
+            'message': '导出报告时发生错误，请检查日志。'
         }

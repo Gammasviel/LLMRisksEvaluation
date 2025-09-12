@@ -1,9 +1,8 @@
-from flask import Blueprint, redirect, url_for, flash
+from flask import Blueprint, redirect, url_for, flash, jsonify
 import logging
 
 # 延迟导入以避免循环依赖
-from app.core.tasks import export_charts_task
-from app.core.report_export import export_report
+from app.core.tasks import export_charts_task, export_report_task
 
 
 exports_bp = Blueprint('exports', __name__, url_prefix='/dev/export')
@@ -21,7 +20,7 @@ def export_all_charts():
         # 异步执行图表导出任务
         task = export_charts_task.delay()
         
-        flash(f'图表导出任务已启动（任务ID: {task.id}），请稍后查看 ./temp/imgs/ 文件夹。', 'info')
+        flash(f'图表导出任务已启动（任务ID: {task.id}），请稍后查看 ./exports/imgs/ 文件夹。', 'info')
         logger.info(f"Chart export task queued with ID: {task.id}")
         
     except Exception as e:
@@ -38,13 +37,14 @@ def export_reports():
     logger.info("Report export requested.")
     
     try:
-        export_report()
-        flash('报告已成功导出。', 'success')
-        logger.info("Report exported successfully.")
+        task = export_report_task.delay()
+        
+        flash(f'报告导出任务已启动（任务ID: {task.id}），请稍后在./exports/reports文件夹中查看结果。', 'info')
+        logger.info(f"Report export task queued with ID: {task.id}")
         
     except Exception as e:
-        logger.error(f"Error exporting report: {e}", exc_info=True)
-        flash('导出报告时发生错误，请检查日志。', 'danger')
+        logger.error(f"Error starting report export task: {e}", exc_info=True)
+        flash('启动报告导出任务时发生错误，请检查日志。', 'danger')
     
     return redirect(url_for('index.index'))
 
