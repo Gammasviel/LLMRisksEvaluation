@@ -5,7 +5,7 @@ from flask_uploads import configure_uploads
 from app.models import Setting, LLM
 from app.core.llm import clients
 from app.core.constants import DEFAULT_CRITERIA
-from app.routes import dimensions_bp, index_bp, leaderboard_bp, models_bp, questions_bp, settings_bp, public_leaderboard_bp, dev_history_bp, auth_bp, history_bp, model_detail_bp
+from app.routes import blueprints
 from app.core.tasks import celery as celery_app
 
 logger = logging.getLogger('main_app')
@@ -14,19 +14,9 @@ logger = logging.getLogger('main_app')
 # 'icons' 是这个集合的名字，IMAGES 是一个预设的包含常见图片扩展名的元组
 
 def register_blueprints(app):
-    
-    app.register_blueprint(dimensions_bp)
-    app.register_blueprint(index_bp)
-    app.register_blueprint(leaderboard_bp)
-    app.register_blueprint(models_bp)
-    app.register_blueprint(questions_bp)
-    app.register_blueprint(settings_bp)
-    app.register_blueprint(public_leaderboard_bp)
-    app.register_blueprint(dev_history_bp)
-    app.register_blueprint(auth_bp)
-    app.register_blueprint(history_bp)
-    app.register_blueprint(model_detail_bp)
-
+    for blueprint in blueprints:
+        app.register_blueprint(blueprint)
+        
 def initialize():
     
     logger.info("Flask app creation started.")

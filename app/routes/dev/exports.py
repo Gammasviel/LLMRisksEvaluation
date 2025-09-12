@@ -1,6 +1,11 @@
 from flask import Blueprint, redirect, url_for, flash
 import logging
 
+# 延迟导入以避免循环依赖
+from app.core.tasks import export_charts_task
+from app.core.report_export import export_report
+
+
 exports_bp = Blueprint('exports', __name__, url_prefix='/dev/export')
 logger = logging.getLogger('exports_routes') # <-- 初始化
 
@@ -12,8 +17,6 @@ def export_all_charts():
     logger.info("Chart export requested - triggering celery task.")
     
     try:
-        # 延迟导入以避免循环依赖
-        from app.core.tasks import export_charts_task
         
         # 异步执行图表导出任务
         task = export_charts_task.delay()
@@ -26,4 +29,23 @@ def export_all_charts():
         flash('启动图表导出任务时发生错误，请检查日志。', 'danger')
     
     return redirect(url_for('index.index'))
+
+@exports_bp.route('/reports', methods=['POST'])
+def export_reports():
+    """
+    触发报告导出的路由
+    """
+    logger.info("Report export requested.")
+    
+    try:
+        export_report()
+        flash('报告已成功导出。', 'success')
+        logger.info("Report exported successfully.")
+        
+    except Exception as e:
+        logger.error(f"Error exporting report: {e}", exc_info=True)
+        flash('导出报告时发生错误，请检查日志。', 'danger')
+    
+    return redirect(url_for('index.index'))
+
 

@@ -10,3 +10,4 @@ app/static/uploads/
 run.ps1
 run.sh
 runw.sh
+exports/
