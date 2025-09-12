@@ -23,11 +23,11 @@ def dev_history():
         # 获取所有历史记录，按时间倒序
         history_records = EvaluationHistory.query.order_by(EvaluationHistory.timestamp.desc()).all()
         
-        return render_template('dev_history.html', history_records=history_records)
+        return render_template('dev/dev_history.html', history_records=history_records)
     except Exception as e:
         logger.error(f"Error loading dev history: {e}", exc_info=True)
         flash('加载历史记录时发生错误，请检查日志。', 'danger')
-        return render_template('dev_history.html', history_records=[])
+        return render_template('dev/dev_history.html', history_records=[])
 
 @dev_history_bp.route('/dev/history/delete/<int:history_id>', methods=['POST'])
 def delete_history_record(history_id):

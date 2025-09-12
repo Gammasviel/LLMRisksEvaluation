@@ -19,7 +19,7 @@ logger = logging.getLogger('model_routes')
 def model_management():
     logger.info("Accessed model management page.")
     llms = LLM.query.all()
-    return render_template('model_management.html', llms=llms)
+    return render_template('dev/model_management.html', llms=llms)
 
 @models_bp.route('/add', methods=['GET', 'POST'])
 @login_required
@@ -36,7 +36,7 @@ def add_model():
         if not api_keys:
             flash('至少需要一个有效的API密钥', 'danger')
             logger.warning("Add model failed: No valid API keys provided.")
-            return render_template('edit_model.html', form=form)
+            return render_template('dev/edit_model.html', form=form)
         
         # 4. 使用 Flask-Uploads 保存文件
         icon_filename = None
@@ -46,7 +46,7 @@ def add_model():
                 icon_filename = icons.save(request.files['icon'])
             except Exception as e:
                 flash(f'图标上传失败: {e}', 'danger')
-                return render_template('edit_model.html', form=form, action='添加')
+                return render_template('dev/edit_model.html', form=form, action='添加')
 
         new_llm = LLM(
             name=form.name.data, model=form.model.data,
@@ -64,7 +64,7 @@ def add_model():
         flash('模型添加成功', 'success')
         return redirect(url_for('models.model_management'))
     
-    return render_template('edit_model.html', form=form, action='添加')
+    return render_template('dev/edit_model.html', form=form, action='添加')
 
 @models_bp.route('/edit/<int:model_id>', methods=['GET', 'POST'])
 @login_required
@@ -87,7 +87,7 @@ def edit_model(model_id):
         if not api_keys:
             flash('至少需要一个有效的API密钥', 'danger')
             logger.warning(f"Edit model ID {model_id} failed: No valid API keys provided.")
-            return render_template('edit_model.html', form=form, action='编辑', llm=llm, icons=icons)
+            return render_template('dev/edit_model.html', form=form, action='编辑', llm=llm, icons=icons)
         
         # --- START: 修正逻辑 ---
         file_data = form.icon.data
@@ -111,7 +111,7 @@ def edit_model(model_id):
             except Exception as e:
                 logger.error(f"Icon upload failed for model ID {model_id}: {e}", exc_info=True)
                 flash(f'图标上传失败: {e}', 'danger')
-                return render_template('edit_model.html', form=form, action='编辑', llm=llm, icons=icons)
+                return render_template('dev/edit_model.html', form=form, action='编辑', llm=llm, icons=icons)
         else:
             # 如果没有新文件上传，则不执行任何图标操作，保留旧图标
             logger.info(f"No new icon file provided for model ID {model_id}. Keeping existing icon: {llm.icon}")
@@ -131,7 +131,7 @@ def edit_model(model_id):
         logger.info(f"Successfully updated model '{llm.name}' (ID: {model_id}).")
         return redirect(url_for('models.model_management'))
     
-    return render_template('edit_model.html', form=form, action='编辑', llm=llm, icons=icons)
+    return render_template('dev/edit_model.html', form=form, action='编辑', llm=llm, icons=icons)
 
 
 @models_bp.route('/delete/<int:model_id>', methods=['POST'])

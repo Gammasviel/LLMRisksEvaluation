@@ -14,7 +14,7 @@ logger = logging.getLogger('index_routes') # <-- 初始化
 @admin_required
 def index():
     logger.info("Main index page accessed.") # <-- 添加日志
-    return render_template('index.html')
+    return render_template('dev/index.html')
 
 @index_bp.route('/dev/export-charts', methods=['POST'])
 @login_required

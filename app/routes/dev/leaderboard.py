@@ -81,7 +81,7 @@ def leaderboard():
     level2_dimensions = Dimension.query.filter(Dimension.level == 2, Dimension.parent.isnot(None)).all()
     level3_dimensions = Dimension.query.filter(Dimension.level == 3, Dimension.parent.isnot(None)).all()
     
-    return render_template('leaderboard.html', 
+    return render_template('dev/leaderboard.html', 
                         leaderboard=leaderboard_data,
                         level1_dimensions=level1_dimensions,
                         level2_dimensions=level2_dimensions,

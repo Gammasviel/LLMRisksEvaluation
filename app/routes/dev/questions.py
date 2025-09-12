@@ -56,7 +56,7 @@ def add_question():
         logger.info(f"Successfully added question, new ID: {new_question.id}.")
         return redirect(url_for('questions.update_questions')) # 改为跳转到问题列表页更友好
     
-    return render_template('add_question.html', form=form)
+    return render_template('dev/add_question.html', form=form)
 
 # --- 这是被遗漏的函数 ---
 @questions_bp.route('/<int:question_id>')
@@ -70,7 +70,7 @@ def question_detail(question_id):
         db.joinedload(Answer.ratings) # 简化了这里的 joinedload，因为 rater 信息在 comment 中
     ).all()
     
-    return render_template('question_detail.html', question=question, answers=answers)
+    return render_template('dev/question_detail.html', question=question, answers=answers)
 
 
 @questions_bp.route('/delete/<int:question_id>', methods=['POST'])
@@ -105,7 +105,7 @@ def update_questions():
     
     logger.info("Accessed question list and update page.")
     questions = Question.query.order_by(Question.id.desc()).all()
-    return render_template('update_questions.html', questions=questions)
+    return render_template('dev/update_questions.html', questions=questions)
 
 # 【解决方案 2.2】添加一个新的路由，用于前端轮询问题状态
 @questions_bp.route('/status/<int:question_id>', methods=['GET'])

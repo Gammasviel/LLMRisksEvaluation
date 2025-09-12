@@ -23,7 +23,7 @@ def login():
             return redirect(url_for('index.index')) # 登录后跳转到后台首页
         else:
             flash('用户名或密码错误')
-    return render_template('login.html') # 你需要创建一个简单的 login.html 模板
+    return render_template('dev/login.html') # 你需要创建一个简单的 login.html 模板
 
 @auth_bp.route('/logout')
 @login_required

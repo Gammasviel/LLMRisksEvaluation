@@ -83,7 +83,7 @@ def manage_dimensions():
                     if dim3.parent == dim2.id:
                         dimension_tree[dim1][dim2].append(dim3)
 
-    return render_template('dimensions.html', 
+    return render_template('dev/dimensions.html', 
                         dimension_tree=dimension_tree,
                         level1_dims=level1_dims,
                         level2_dims=level2_dims,

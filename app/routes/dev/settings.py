@@ -53,7 +53,7 @@ def settings():
     objective_total = objective_setting.total_score if objective_setting else 5.0
     subjective_total = subjective_setting.total_score if subjective_setting else 5.0
     
-    return render_template('settings.html', 
+    return render_template('dev/settings.html', 
                         form=form,
                         objective_criteria=objective_criteria,
                         subjective_criteria=subjective_criteria,

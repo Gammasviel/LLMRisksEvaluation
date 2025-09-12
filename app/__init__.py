@@ -5,7 +5,7 @@ from flask_uploads import configure_uploads
 from app.models import Setting, LLM
 from app.core.llm import clients
 from app.config import DEFAULT_CRITERIA
-from app.routes import dimensions_bp, index_bp, leaderboard_bp, models_bp, questions_bp, settings_bp, public_leaderboard_bp, dev_history_bp, auth_bp, history_bp
+from app.routes import dimensions_bp, index_bp, leaderboard_bp, models_bp, questions_bp, settings_bp, public_leaderboard_bp, dev_history_bp, auth_bp, history_bp, model_detail_bp
 from app.core.tasks import celery as celery_app
 
 logger = logging.getLogger('main_app')
@@ -25,6 +25,7 @@ def register_blueprints(app):
     app.register_blueprint(dev_history_bp)
     app.register_blueprint(auth_bp)
     app.register_blueprint(history_bp)
+    app.register_blueprint(model_detail_bp)
 
 def initialize():
     

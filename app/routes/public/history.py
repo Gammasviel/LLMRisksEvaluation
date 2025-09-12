@@ -28,14 +28,14 @@ def evaluation_history():
             except ValueError:
                 flash('结束日期格式无效，请使用 YYYY-MM-DD 格式', 'warning')
         history_records = query.order_by(EvaluationHistory.timestamp.desc()).all()
-        return render_template('evaluation_history.html', 
+        return render_template('public/evaluation_history.html', 
                              history_records=history_records,
                              start_date=start_date,
                              end_date=end_date)
     except Exception as e:
         logger.error(f"Error loading evaluation history: {e}", exc_info=True)
         flash('加载历史记录时发生错误，请检查日志。', 'danger')
-        return render_template('evaluation_history.html', 
+        return render_template('public/evaluation_history.html', 
                              history_records=[],
                              start_date=None,
                              end_date=None)
@@ -86,7 +86,7 @@ def history_detail(history_id):
                 # NOTE: Bias analysis chart cannot be generated as raw data is not stored in history.
             }
 
-        return render_template('history_detail.html',
+        return render_template('public/history_detail.html',
                              history_record=history_record,
                              leaderboard=leaderboard_data,
                              l1_dimensions=history_record.dimensions,

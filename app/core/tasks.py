@@ -25,13 +25,10 @@ celery.conf.beat_schedule = {
 }
 
 class ContextTask(celery.Task):
-    _app = None
-
     def __call__(self, *args, **kwargs):
-        if self._app is None:
-            from app import create_app
-            self._app = create_app()
-        with self._app.app_context():
+        from app import create_app
+        flask_app = create_app()
+        with flask_app.app_context():
             return self.run(*args, **kwargs)
 
 celery.Task = ContextTask
