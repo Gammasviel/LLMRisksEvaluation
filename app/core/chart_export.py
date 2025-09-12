@@ -11,7 +11,7 @@ import numpy as np
 logger = logging.getLogger('chart_export')
 
 
-def export_charts_with_playwright(models, leaderboard_data, l1_dims, imgs_dir, timestamp):
+def export_charts_with_playwright(models, leaderboard_data, l1_dims, imgs_dir, timestamp, export_timestamp=True):
     """使用Playwright导出真实的图表"""
     
     exported_count = 0
@@ -49,12 +49,20 @@ def export_charts_with_playwright(models, leaderboard_data, l1_dims, imgs_dir, t
                 logger.warning(f"Overall bar chart element not found: {e}")
             
             # 导出综合图表
-            chart_selectors = [
-                ('#overall-bar-chart', f'overall_bar_chart_{timestamp}.png'),
-                ('#quadrant-chart', f'quadrant_chart_{timestamp}.png'),
-                ('#dimension-bar-chart', f'dimension_bar_chart_{timestamp}.png'),
-                ('#question-type-bar-chart', f'question_type_bar_chart_{timestamp}.png')
-            ]
+            if export_timestamp:
+                chart_selectors = [
+                    ('#overall-bar-chart', f'overall_bar_chart_{timestamp}.png'),
+                    ('#quadrant-chart', f'quadrant_chart_{timestamp}.png'),
+                    ('#dimension-bar-chart', f'dimension_bar_chart_{timestamp}.png'),
+                    ('#question-type-bar-chart', f'question_type_bar_chart_{timestamp}.png')
+                ]
+            else:
+                chart_selectors = [
+                    ('#overall-bar-chart', f'overall_bar_chart.png'),
+                    ('#quadrant-chart', f'quadrant_chart.png'),
+                    ('#dimension-bar-chart', f'dimension_bar_chart.png'),
+                    ('#question-type-bar-chart', f'question_type_bar_chart.png')
+                ]
             
             for selector, filename in chart_selectors:
                 try:
@@ -84,10 +92,16 @@ def export_charts_with_playwright(models, leaderboard_data, l1_dims, imgs_dir, t
                 page.wait_for_timeout(3000)  # 等待图表加载
                 
                 # 导出模型详情图表
-                model_chart_selectors = [
-                    ('#response-efficiency-chart', f'{model_name}_response_rate_{timestamp}.png'),
-                    ('#pie-chart', f'{model_name}_avg_scores_{timestamp}.png')
-                ]
+                if export_timestamp:
+                    model_chart_selectors = [
+                        ('#response-efficiency-chart', f'{model_name}_response_rate_{timestamp}.png'),
+                        ('#pie-chart', f'{model_name}_avg_scores_{timestamp}.png')
+                    ]
+                else:
+                    model_chart_selectors = [
+                        ('#response-efficiency-chart', f'{model_name}_response_rate.png'),
+                        ('#pie-chart', f'{model_name}_avg_scores.png')
+                    ]
                 
                 for selector, filename in model_chart_selectors:
                     try:
@@ -103,7 +117,12 @@ def export_charts_with_playwright(models, leaderboard_data, l1_dims, imgs_dir, t
                 bias_table = page.query_selector('table.tech-table')
                 if bias_table:
                     try:
-                        screenshot_path = imgs_dir / f'{model_name}_bias_analysis_{timestamp}.png'
+                        
+                        if export_timestamp:
+                            screenshot_path = imgs_dir / f'{model_name}_bias_analysis_{timestamp}.png'
+                        else:
+                            screenshot_path = imgs_dir / f'{model_name}_bias_analysis.png'
+                            
                         bias_table.screenshot(path=str(screenshot_path))
                         exported_count += 1
                     except Exception as e:
@@ -117,7 +136,7 @@ def export_charts_with_playwright(models, leaderboard_data, l1_dims, imgs_dir, t
     return exported_count
 
 
-def export_charts_with_matplotlib(models, leaderboard_data, l1_dims, imgs_dir, timestamp):
+def export_charts_with_matplotlib(models, leaderboard_data, l1_dims, imgs_dir, timestamp, export_timestamp=True):
     """使用matplotlib生成真实的图表"""
     
     exported_count = 0
@@ -144,7 +163,12 @@ def export_charts_with_matplotlib(models, leaderboard_data, l1_dims, imgs_dir, t
                     f'{avg_scores[i]:.2f}', ha='left', va='center')
         
         plt.tight_layout()
-        plt.savefig(imgs_dir / f'overall_bar_chart_{timestamp}.png', dpi=300, bbox_inches='tight')
+        
+        if export_timestamp:
+            plt.savefig(imgs_dir / f'overall_bar_chart_{timestamp}.png', dpi=300, bbox_inches='tight')
+        else:
+            plt.savefig(imgs_dir / f'overall_bar_chart.png', dpi=300, bbox_inches='tight')
+        
         plt.close()
         exported_count += 1
         
@@ -165,7 +189,12 @@ def export_charts_with_matplotlib(models, leaderboard_data, l1_dims, imgs_dir, t
         plt.title('模型表现象限图')
         plt.grid(True, alpha=0.3)
         plt.tight_layout()
-        plt.savefig(imgs_dir / f'quadrant_chart_{timestamp}.png', dpi=300, bbox_inches='tight')
+        
+        if export_timestamp:
+            plt.savefig(imgs_dir / f'quadrant_chart_{timestamp}.png', dpi=300, bbox_inches='tight')
+        else:
+            plt.savefig(imgs_dir / f'quadrant_chart.png', dpi=300, bbox_inches='tight')
+            
         plt.close()
         exported_count += 1
         
@@ -192,7 +221,12 @@ def export_charts_with_matplotlib(models, leaderboard_data, l1_dims, imgs_dir, t
             ax.grid(True, alpha=0.3)
             
             plt.tight_layout()
-            plt.savefig(imgs_dir / f'dimension_bar_chart_{timestamp}.png', dpi=300, bbox_inches='tight')
+            
+            if export_timestamp:
+                plt.savefig(imgs_dir / f'dimension_bar_chart_{timestamp}.png', dpi=300, bbox_inches='tight')
+            else:
+                plt.savefig(imgs_dir / f'dimension_bar_chart.png', dpi=300, bbox_inches='tight')
+                
             plt.close()
             exported_count += 1
         
@@ -224,7 +258,12 @@ def export_charts_with_matplotlib(models, leaderboard_data, l1_dims, imgs_dir, t
         plt.legend()
         plt.grid(True, alpha=0.3)
         plt.tight_layout()
-        plt.savefig(imgs_dir / f'question_type_bar_chart_{timestamp}.png', dpi=300, bbox_inches='tight')
+        
+        if export_timestamp:
+            plt.savefig(imgs_dir / f'question_type_bar_chart_{timestamp}.png', dpi=300, bbox_inches='tight')
+        else:
+            plt.savefig(imgs_dir / f'question_type_bar_chart.png', dpi=300, bbox_inches='tight')
+            
         plt.close()
         exported_count += 1
         
@@ -249,7 +288,12 @@ def export_charts_with_matplotlib(models, leaderboard_data, l1_dims, imgs_dir, t
             plt.title(f'{model_name} - 响应有效性')
             plt.axis('equal')
             plt.tight_layout()
-            plt.savefig(imgs_dir / f'{model_name}_response_rate_{timestamp}.png', dpi=300, bbox_inches='tight')
+            
+            if export_timestamp:
+                plt.savefig(imgs_dir / f'{model_name}_response_rate_{timestamp}.png', dpi=300, bbox_inches='tight')
+            else:
+                plt.savefig(imgs_dir / f'{model_name}_response_rate.png', dpi=300, bbox_inches='tight')
+                
             plt.close()
             exported_count += 1
             
@@ -271,7 +315,12 @@ def export_charts_with_matplotlib(models, leaderboard_data, l1_dims, imgs_dir, t
                     plt.title(f'{model_name} - 各维度平均得分')
                     plt.axis('equal')
                     plt.tight_layout()
-                    plt.savefig(imgs_dir / f'{model_name}_avg_scores_{timestamp}.png', dpi=300, bbox_inches='tight')
+                    
+                    if export_timestamp:
+                        plt.savefig(imgs_dir / f'{model_name}_avg_scores_{timestamp}.png', dpi=300, bbox_inches='tight')
+                    else:
+                        plt.savefig(imgs_dir / f'{model_name}_avg_scores_{timestamp}.png', dpi=300, bbox_inches='tight')
+                        
                     plt.close()
                     exported_count += 1
                     
@@ -281,7 +330,7 @@ def export_charts_with_matplotlib(models, leaderboard_data, l1_dims, imgs_dir, t
     return exported_count
 
 
-def export_charts_placeholder(models, imgs_dir, timestamp):
+def export_charts_placeholder(models, imgs_dir, timestamp, export_timestamp=True):
     """创建占位符文件"""
     exported_count = 0
     
@@ -289,11 +338,18 @@ def export_charts_placeholder(models, imgs_dir, timestamp):
     for model in models:
         model_name = model.name
         
-        charts = [
-            f'{model_name}_response_rate_{timestamp}.png',
-            f'{model_name}_avg_scores_{timestamp}.png',
-            f'{model_name}_bias_analysis_{timestamp}.png'
-        ]
+        if export_timestamp:
+            charts = [
+                f'{model_name}_response_rate_{timestamp}.png',
+                f'{model_name}_avg_scores_{timestamp}.png',
+                f'{model_name}_bias_analysis_{timestamp}.png'
+            ]
+        else:
+            charts = [
+                f'{model_name}_response_rate.png',
+                f'{model_name}_avg_scores.png',
+                f'{model_name}_bias_analysis.png'
+            ]
         
         for chart_filename in charts:
             chart_path = imgs_dir / chart_filename
@@ -302,12 +358,20 @@ def export_charts_placeholder(models, imgs_dir, timestamp):
             exported_count += 1
     
     # 导出综合图表
-    overall_charts = [
-        f'overall_bar_chart_{timestamp}.png',
-        f'quadrant_chart_{timestamp}.png', 
-        f'dimension_bar_chart_{timestamp}.png',
-        f'question_type_bar_chart_{timestamp}.png'
-    ]
+    if export_timestamp:
+        overall_charts = [
+            f'overall_bar_chart_{timestamp}.png',
+            f'quadrant_chart_{timestamp}.png', 
+            f'dimension_bar_chart_{timestamp}.png',
+            f'question_type_bar_chart_{timestamp}.png'
+        ]
+    else:
+        overall_charts = [
+            f'overall_bar_chart.png',
+            f'quadrant_chart.png', 
+            f'dimension_bar_chart.png',
+            f'question_type_bar_chart.png'
+        ]
     
     for chart_filename in overall_charts:
         chart_path = imgs_dir / chart_filename
@@ -317,7 +381,7 @@ def export_charts_placeholder(models, imgs_dir, timestamp):
     return exported_count
 
 
-def export_all_charts(models, leaderboard_data, l1_dims, imgs_dir, timestamp):
+def export_all_charts(models, leaderboard_data, l1_dims, imgs_dir, timestamp, export_timestamp=True):
     """主要的图表导出函数，自动选择最佳的导出方式"""
     exported_count = 0
     
@@ -331,7 +395,7 @@ def export_all_charts(models, leaderboard_data, l1_dims, imgs_dir, timestamp):
             logger.warning("Playwright not available, checking for matplotlib...")
             
         if playwright_available:
-            exported_count = export_charts_with_playwright(models, leaderboard_data, l1_dims, imgs_dir, timestamp)
+            exported_count = export_charts_with_playwright(models, leaderboard_data, l1_dims, imgs_dir, timestamp, export_timestamp)
         else:
             # Fallback to matplotlib if Playwright is not available
             try:
@@ -343,12 +407,12 @@ def export_all_charts(models, leaderboard_data, l1_dims, imgs_dir, timestamp):
                 logger.warning("Neither Playwright nor matplotlib available, using placeholder files")
             
             if chart_lib_available:
-                exported_count = export_charts_with_matplotlib(models, leaderboard_data, l1_dims, imgs_dir, timestamp)
+                exported_count = export_charts_with_matplotlib(models, leaderboard_data, l1_dims, imgs_dir, timestamp, export_timestamp)
             else:
-                exported_count = export_charts_placeholder(models, imgs_dir, timestamp)
+                exported_count = export_charts_placeholder(models, imgs_dir, timestamp, export_timestamp)
     
     except Exception as chart_export_error:
         logger.error(f"Error in chart export logic: {chart_export_error}", exc_info=True)
-        exported_count = export_charts_placeholder(models, imgs_dir, timestamp)
+        exported_count = export_charts_placeholder(models, imgs_dir, timestamp, export_timestamp)
     
     return exported_count

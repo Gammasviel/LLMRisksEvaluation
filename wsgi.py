@@ -8,4 +8,4 @@ logger = logging.getLogger('main_app')
 if __name__ == '__main__':
     app = create_app()
     logger.info("Starting Flask development server.")
-    app.run(debug=False)
+    app.run(debug=False, port=5000)
