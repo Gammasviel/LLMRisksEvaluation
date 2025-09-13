@@ -81,6 +81,12 @@
                                            class="btn btn-sm btn-outline-primary" target="_blank">
                                             <i class="bi bi-eye"></i> 查看
                                         </a>
+                                        <form method="POST" action="{{ url_for('exports.export_history_report', history_id=record.id) }}" class="d-inline">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                            <button type="submit" class="btn btn-sm btn-outline-info">
+                                                <i class="bi bi-file-earmark-arrow-down"></i> 导出
+                                            </button>
+                                        </form>
                                         <button type="button" class="btn btn-sm btn-outline-danger" 
                                                 onclick="confirmDelete({{ record.id }}, '{{ record.timestamp.strftime('%Y年%m月%d日 %H:%M:%S') }}')">
                                             <i class="bi bi-trash"></i> 删除

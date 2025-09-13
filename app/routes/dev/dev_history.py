@@ -9,10 +9,10 @@ from app.core.utils import generate_leaderboard_data
 from app.routes.dev.auth import admin_required
 from flask_login import login_required
 
-dev_history_bp = Blueprint('dev_history', __name__)
+dev_history_bp = Blueprint('dev_history', __name__, url_prefix='/dev/history')
 logger = logging.getLogger('dev_history_routes')
 
-@dev_history_bp.route('/dev/history')
+@dev_history_bp.route('/')
 @login_required
 @admin_required
 def dev_history():
@@ -29,7 +29,7 @@ def dev_history():
         flash('加载历史记录时发生错误，请检查日志。', 'danger')
         return render_template('dev/dev_history.html', history_records=[])
 
-@dev_history_bp.route('/dev/history/delete/<int:history_id>', methods=['POST'])
+@dev_history_bp.route('/delete/<int:history_id>', methods=['POST'])
 def delete_history_record(history_id):
     """删除历史记录"""
     logger.info(f"Received request to delete history record {history_id}.")
@@ -51,7 +51,7 @@ def delete_history_record(history_id):
     
     return redirect(url_for('dev_history.dev_history'))
 
-@dev_history_bp.route('/save-history', methods=['POST'])
+@dev_history_bp.route('/save', methods=['POST'])
 def save_current_data_to_history():
     """保存当前评估数据到历史记录"""
     logger.info("Received request to save current evaluation data to history.")

@@ -43,9 +43,9 @@ PROMPTS = [
 
 {data_template}""",
 
-    """请你结合各模型在偏见歧视领域里面客观题和主观题的平均得分对比表格数据，分析一下各大模型测评效果，输出样例参考如下“表面上遵循公平公正，实际上存在内源性偏颇。以偏见歧视领域为例，多数大模型客观题得分远高于主观题得分，主要原因在于，不同题型下模型泛化能力不同。客观题，正确答案唯一确定，模型容易泛化；主观题，正确答案开放不定，且受到文化、社会和个人经验的影响，使得模型难以泛化，更容易表现出其训练数据中的偏见。。”输出的分析模板如下“大多数大模型在偏见歧视领域主观题和客观题哪一个得分更高+得分更高的原因+得分低的原因”
+    """请你结合各模型的客观题和主观题的平均得分对比的表格数据，分析一下各大模型测评效果，输出样例参考如下“表面上遵循公平公正，实际上存在内源性偏颇。多数大模型客观题得分远高于主观题得分，主要原因在于，不同题型下模型泛化能力不同。客观题，正确答案唯一确定，模型容易泛化；主观题，正确答案开放不定，且受到文化、社会和个人经验的影响，使得模型难以泛化，更容易表现出其训练数据中的偏见。。”输出的分析模板如下“大多数大模型的主观题和客观题哪一个得分更高+得分更高的原因+得分低的原因”
 
-注意，且输出的语言不要过于复杂，也不要字数过多
+注意，输出的语言不要过于复杂，也不要字数过多
 语言精炼且结论准确，且文字稳妥点，不要有太多评价，尤其是负面评价
 且要注意用语去AI化
 
@@ -94,7 +94,7 @@ def prepare_data_tables(leaderboard_data, dimension_metadata):
 
 def generate_json_data(leaderboard_data, dimension_metadata):
     """Generates a JSON string with detailed leaderboard data."""
-    dimension_id_to_name = {item["id"]: item["name"] for item in dimension_metadata}
+    dimension_id_to_name = {str(item["id"]): item["name"] for item in dimension_metadata}
     json_data = [
         {
             "模型名称": item['name'],
@@ -126,7 +126,7 @@ def encode_charts_to_base64():
     encoded_charts = map(get_image_base64, chart_names)
     return tuple(encoded_charts)
 
-def export_report():
+def export_report(leaderboard_data: list = None, report_file_name: str = None, timestamp: datetime = None):
     """
     Generates and exports a report by preparing data, generating LLM analysis,
     and rendering it into a markdown template.
@@ -134,7 +134,29 @@ def export_report():
     report_path = Path('./exports/reports')
     report_path.mkdir(exist_ok=True, parents=True)
 
-    leaderboard_data, dimension_metadata = generate_leaderboard_data().values()
+    if leaderboard_data is None:
+        leaderboard_data, dimension_metadata = generate_leaderboard_data().values()
+    else:
+        leaderboard_data, dimension_metadata = leaderboard_data
+    
+    if report_file_name is None:
+        report_file_name = f"Report {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}.md"
+
+    report_file_path = report_path / report_file_name
+    
+    if report_file_path.exists():
+        i = 0
+        base_name, file_extension = report_file_name.split('.')
+        while report_file_path.exists():
+            i += 1
+            report_file_path = report_path / f"{base_name} ({i}).{file_extension}"
+            
+    
+    if timestamp is None:
+        timestamp = datetime.now()
+        
+    compact_timestamp = timestamp.strftime('%m%d')
+    full_timestamp = timestamp.strftime('%Y年%m月%d日')
 
     table_data = prepare_data_tables(leaderboard_data, dimension_metadata)
     json_data_str = generate_json_data(leaderboard_data, dimension_metadata)
@@ -157,10 +179,11 @@ def export_report():
         model_performance_chart_b64=model_performance_chart_b64,
         quadrant_chart_b64=quadrant_chart_b64,
         dimension_comparison_chart_b64=dimension_comparison_chart_b64,
-        question_type_chart_b64=question_type_chart_b64
+        question_type_chart_b64=question_type_chart_b64,
+        compact_timestamp=compact_timestamp,
+        full_timestamp=full_timestamp
     )
 
-    report_file_path = report_path / (datetime.now().strftime('%Y-%m-%d_%H-%M-%S') + '.md')
     with open(report_file_path, 'w', encoding='utf-8') as f:
         f.write(report_content)
 

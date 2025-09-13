@@ -26,10 +26,10 @@ class CustomFormatter(logging.Formatter):
     """A custom formatter to add millisecond precision to timestamps."""
     def formatTime(self, record, datefmt=None):
         ct = datetime.datetime.fromtimestamp(record.created)
+        if datefmt is None:
+            return ct.strftime("%Y-%m-%d %H:%M:%S,%f")
         if datefmt:
             return ct.strftime(datefmt)
-        s = ct.strftime("%Y-%m-%d %H:%M:%S")
-        return f"{s},{int(ct.microsecond / 1000):03d}"
 
 def setup_logging(
     log_level=logging.INFO,

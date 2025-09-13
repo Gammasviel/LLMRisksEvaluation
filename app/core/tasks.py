@@ -209,13 +209,13 @@ def export_charts_task():
 
 
 @celery.task
-def export_report_task():
+def export_report_task(leaderboard_data: list = None, report_file_name: str = None, timestamp = None):
     """
     Celery task to export a report for given model_ids.
     """
     logger.info(f"Report export task started.")
     try:
-        export_report()
+        export_report(leaderboard_data=leaderboard_data, report_file_name=report_file_name, timestamp=timestamp)
         logger.info("Successfully exported report.")
         return {
             'success': True, 
