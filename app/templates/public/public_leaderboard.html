@@ -572,25 +572,11 @@
                     yAxis: [
                         {
                             type: 'value',
-                            name: '得分 (%)',
+                            name: '百分比',
                             min: 0,
                             max: 100,
-                            position: 'left',
                             axisLabel: {
                                 formatter: '{value}%'
-                            }
-                        },
-                        {
-                            type: 'value',
-                            name: '响应率',
-                            min: 0,
-                            max: 100,
-                            position: 'right',
-                            axisLabel: {
-                                formatter: '{value}%'
-                            },
-                            splitLine: {
-                                show: false
                             }
                         }
                     ],
@@ -621,23 +607,24 @@
                         },
                         {
                             name: '响应率',
-                            type: 'line',
-                            yAxisIndex: 1,
+                            type: 'bar',
                             data: leaderboardData.map(item => parseFloat(item.response_rate.toFixed(2))),
-                            smooth: true,
-                            symbol: 'circle',
-                            symbolSize: 8,
-                            lineStyle: {
-                                width: 3,
-                                color: techTheme.color[2]
-                            },
-                            itemStyle: {
-                                color: techTheme.color[2],
-                                borderColor: '#fff',
-                                borderWidth: 2
-                            },
                             emphasis: {
                                 focus: 'series'
+                            },
+                            itemStyle: {
+                                color: {
+                                    type: 'linear',
+                                    x: 0,
+                                    y: 0,
+                                    x2: 0,
+                                    y2: 1,
+                                    colorStops: [{
+                                        offset: 0, color: techTheme.color[2]
+                                    }, {
+                                        offset: 1, color: techTheme.color[2] + '80'
+                                    }]
+                                }
                             }
                         }
                     ]

@@ -547,12 +547,11 @@
                     grid: { left: '3%', right: '4%', bottom: '15%', top: '15%', containLabel: true },
                     xAxis: { type: 'category', data: leaderboardData.map(item => item.name), axisLabel: { interval: 0, rotate: 30 } },
                     yAxis: [
-                        { type: 'value', name: '得分 (%)', min: 0, max: 100, position: 'left', axisLabel: { formatter: '{value}%' } },
-                        { type: 'value', name: '响应率', min: 0, max: 100, position: 'right', axisLabel: { formatter: '{value}%' }, splitLine: { show: false } }
+                        { type: 'value', name: '百分比', min: 0, max: 100, axisLabel: { formatter: '{value}%' } }
                     ],
                     series: [
                         { name: '总得分', type: 'bar', data: leaderboardData.map(item => ({ value: parseFloat(item.avg_score / 5 * 100), itemStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: window.techTheme.color[0] }, { offset: 1, color: window.techTheme.color[1] }]) } })), emphasis: { focus: 'series' } },
-                        { name: '响应率', type: 'line', yAxisIndex: 1, data: leaderboardData.map(item => parseFloat(item.response_rate.toFixed(2))), smooth: true, symbol: 'circle', symbolSize: 8, lineStyle: { width: 3, color: window.techTheme.color[2] }, itemStyle: { color: window.techTheme.color[2], borderColor: '#fff', borderWidth: 2 }, emphasis: { focus: 'series' } }
+                        { name: '响应率', type: 'bar', data: leaderboardData.map(item => parseFloat(item.response_rate.toFixed(2))), itemStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: window.techTheme.color[2] }, { offset: 1, color: window.techTheme.color[3] }]) }, emphasis: { focus: 'series' } }
                     ]
                 };
                 chart.setOption(option);
