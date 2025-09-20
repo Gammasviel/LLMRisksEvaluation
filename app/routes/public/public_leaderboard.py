@@ -24,6 +24,36 @@ def display_public_leaderboard():
     try:
         # <-- 2. 路由现在只负责调用工具函数和渲染 -->
         data = generate_leaderboard_data(sort_by=sort_by, sort_order=sort_order)
+
+        # --- 新增开始: 为图表准备数据 ---
+        charts_data = {}
+        for model_data in data['leaderboard']:
+            model_name = model_data['name']
+            
+            # 1. 维度响应率数据
+            response_rate_by_dim = {
+                'labels': [dim['name'] for dim in data['l1_dimensions']],
+                'datasets': [{
+                    'label': '响应率',
+                    'data': [model_data['dim_scores'][dim['id']]['response_rate'] for dim in data['l1_dimensions']]
+                }]
+            }
+
+            # 2. 维度得分数据
+            avg_scores_by_dim = {
+                'labels': [dim['name'] for dim in data['l1_dimensions']],
+                'datasets': [{
+                    'label': '平均分',
+                    'data': [model_data['dim_scores'][dim['id']]['avg'] for dim in data['l1_dimensions']]
+                }]
+            }
+
+            charts_data[model_name] = {
+                'response_rate_by_dimension': response_rate_by_dim,
+                'avg_scores_by_dimension': avg_scores_by_dim,
+                'bias_analysis_data': model_data.get('bias_analysis_data', [])
+            }
+        # --- 新增结束 ---
         
         return render_template('public/public_leaderboard.html', 
                                leaderboard=data['leaderboard'], 
@@ -31,7 +61,8 @@ def display_public_leaderboard():
                                score_threshold=QUADRANT_SCORE_THRESHOLD,
                                rate_threshold=QUADRANT_RESPONSE_RATE_THRESHOLD,
                                current_sort_by=sort_by,
-                               current_sort_order=sort_order)
+                               current_sort_order=sort_order,
+                               charts_data=charts_data) # <-- 传递新数据
 
     except Exception as e:
         logger.error(f"Error generating public leaderboard: {e}", exc_info=True)

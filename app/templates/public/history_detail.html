@@ -662,106 +662,45 @@
             const dom = document.getElementById(`response-rate-chart-${modelName}`);
             if(dom) {
                 const chart = echarts.init(dom, techTheme);
-                
-                // Prepare polar chart data for response rates
-                const responseData = modelChartData.response_rate_by_dimension.datasets[0].data.map((value, index) => {
-                    return {
-                        name: modelChartData.response_rate_by_dimension.labels[index],
-                        value: value,  // 直接使用响应率百分比
-                        itemStyle: {
-                            color: techTheme.color[index % techTheme.color.length]
-                        }
-                    };
-                });
+                const responseRateData = modelChartData.response_rate_by_dimension;
 
                 const option = {
                     tooltip: {
-                        trigger: 'item',
-                        formatter: function(params) {
-                            return `
-                                <div style="font-weight: 600; margin-bottom: 4px;">${params.data.name}</div>
-                                <div>响应率: ${(params.data.value * 100 / 270).toFixed(2)}%</div>
-                            `;
-                        }
+                        trigger: 'axis',
+                        valueFormatter: (value) => value.toFixed(2) + '%'
                     },
-                    polar: {
-                        radius: ['20%', '80%']
+                    legend: {
+                        data: ['响应率'],
+                        orient: 'vertical',
+                        right: 10,
+                        top: 20,
                     },
-                    radiusAxis: {
-                        type: 'category',
-                        data: responseData.map(item => item.name),
-                        axisLabel: {
-                            show: false
-                        },
-                        axisLine: {
-                            show: false
-                        },
-                        axisTick: {
-                            show: false
-                        }
-                    },
-                    angleAxis: {
-                        type: 'value',
-                        max: 360,  // 最大角度为360度
-                        startAngle: 90,
-                        clockwise: true,
-                        axisLabel: {
-                            show: true,  // 显示角度刻度标签
-                            formatter: function(value) {
-                                const percentage = (value * 100 / 270);
-                                // 只显示不超过100%的刻度，270度处显示100%
-                                return percentage <= 100 ? percentage.toFixed(0) + '%' : '';
-                            },
-                            fontSize: 10,
-                            color: techTheme.textStyle.color
-                        },
-                        splitLine: {
+                    radar: {
+                        indicator: responseRateData.labels.map(name => ({ name: name, max: 100 })),
+                        radius: '60%',
+                        center: ['50%', '55%'],
+                        axisName: {
                             show: true,
-                            lineStyle: {
-                                color: 'rgba(203, 213, 225, 0.3)',
-                                width: 1
-                            }
-                        },
-                        axisLine: {
-                            show: false
-                        },
-                        axisTick: {
-                            show: false
+                            color: '#000',
+                            fontWeight: 'bold'
                         }
                     },
                     series: [{
-                        type: 'bar',
-                        coordinateSystem: 'polar',
-                        data: responseData.map(item => ({
-                            ...item,
-                            value: item.value * 270 / 100  // 将百分比映射到270度
-                        })),
-                        barWidth: '60%',
-                        roundCap: true,
+                        name: '响应率',
+                        type: 'radar',
                         label: {
                             show: true,
-                            position: 'start',  // 标签位置在起始点
-                            distance: 15,       // 标签距离
-                            formatter: function(params) {
-                                // 使用原始响应率数据进行显示
-                                const originalValue = params.data.value * 100 / 270;
-                                return `${params.data.name} ${originalValue.toFixed(2)}%`;
-                            },
-                            fontSize: 11,
                             fontWeight: 'bold',
-                            color: '#000000',   // 强制设置为黑色
-                            align: 'right'      // 右对齐
-                        },
-                        emphasis: {
-                            label: {
-                                color: '#000000'    // 悬停时也保持黑色
-                            },
-                            itemStyle: {
-                                shadowBlur: 10,
-                                shadowOffsetX: 0,
-                                shadowColor: 'rgba(0, 0, 0, 0.5)'
+                            formatter: function(params) {
+                                return params.value.toFixed(2);
                             }
-                        }
+                        },
+                        data: [
+                            {
+                                value: responseRateData.datasets[0].data,
+                                name: '响应率'
+                            }
+                        ]
                     }]
                 };
                 chart.setOption(option);
