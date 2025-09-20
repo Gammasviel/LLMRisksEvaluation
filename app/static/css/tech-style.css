@@ -302,7 +302,7 @@ body::after {
 /* 图表容器 */
 .tech-chart-container {
     width: 100%;
-    height: 450px;
+    height: 600px;
     position: relative;
     background: var(--tech-bg-secondary);
     border-radius: 0.75rem;

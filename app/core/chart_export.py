@@ -230,8 +230,8 @@ def export_charts_with_matplotlib(models, leaderboard_data, l1_dims, imgs_dir, t
             plt.close()
             exported_count += 1
         
-        # 4. 导出题型分布图
-        plt.figure(figsize=(10, 6))
+        # 4. 导出题型分布图 (Horizontal Bar Chart)
+        plt.figure(figsize=(10, 8)) # Adjusted figure size for better horizontal display
         
         # 计算各模型在主观题和客观题上的平均表现
         subj_data = []
@@ -239,24 +239,23 @@ def export_charts_with_matplotlib(models, leaderboard_data, l1_dims, imgs_dir, t
         model_labels = []
         
         for model in model_data:
-            if model['avg_subj_score'] > 0:
-                subj_data.append(model['avg_subj_score'])
-                model_labels.append(model['name'])
-            if model['avg_obj_score'] > 0:
-                obj_data.append(model['avg_obj_score'])
+            model_labels.append(model['name'])
+            subj_data.append(model.get('avg_subj_score', 0))
+            obj_data.append(model.get('avg_obj_score', 0))
         
-        x_pos = np.arange(len(model_labels))
-        width = 0.35
+        y_pos = np.arange(len(model_labels))
+        height = 0.35
         
-        plt.bar(x_pos - width/2, subj_data, width, label='主观题', alpha=0.8)
-        plt.bar(x_pos + width/2, obj_data, width, label='客观题', alpha=0.8)
+        plt.barh(y_pos + height/2, subj_data, height, label='主观题', alpha=0.8)
+        plt.barh(y_pos - height/2, obj_data, height, label='客观题', alpha=0.8)
         
-        plt.xlabel('模型')
-        plt.ylabel('平均分数')
-        plt.title('主观题vs客观题表现对比')
-        plt.xticks(x_pos, model_labels, rotation=45, ha='right')
+        plt.ylabel('模型')
+        plt.xlabel('平均分数')
+        plt.title('主观题 vs 客观题表现对比')
+        plt.yticks(y_pos, model_labels)
+        plt.gca().invert_yaxis()  # Invert y-axis to have the first model on top
         plt.legend()
-        plt.grid(True, alpha=0.3)
+        plt.grid(True, axis='x', alpha=0.3) # Grid lines on x-axis
         plt.tight_layout()
         
         if export_timestamp:

@@ -887,8 +887,7 @@
                 });
             }
 
-            // --- 新增开始 ---
-            // 4. 客观题与主观题得分对比图
+            // 4. 客观题与主观题得分对比图 (Horizontal)
             const questionTypeChartDom = document.getElementById('question-type-bar-chart');
             if (questionTypeChartDom) {
                 if (charts.questionTypeChart) {
@@ -916,25 +915,23 @@
                     grid: {
                         left: '3%',
                         right: '4%',
-                        bottom: '15%',
-                        top: '15%',
+                        bottom: '3%',
                         containLabel: true
                     },
                     xAxis: {
-                        type: 'category',
-                        data: leaderboardData.map(item => item.name),
-                        axisLabel: {
-                            interval: 0,
-                            rotate: 30
-                        }
-                    },
-                    yAxis: {
                         type: 'value',
                         name: '平均得分 (%)',
                         min: 0,
                         max: 100,
                         axisLabel: {
                             formatter: '{value}%'
+                        }
+                    },
+                    yAxis: {
+                        type: 'category',
+                        data: leaderboardData.map(item => item.name),
+                        axisLabel: {
+                            interval: 0
                         }
                     },
                     series: [
@@ -963,7 +960,7 @@
                 charts.questionTypeChart.setOption(questionTypeOption);
                 charts.questionTypeChart.on('click', params => {
                     let modelName = null;
-                    if (params.componentType === 'xAxis') {
+                    if (params.componentType === 'yAxis') {
                         modelName = params.value;
                     } else if (params.componentType === 'series' && params.seriesType === 'bar') {
                         modelName = leaderboardData[params.dataIndex].name;
@@ -974,7 +971,6 @@
                     }
                 });
             }
-            // --- 新增结束 ---
 
 
             // 响应式
