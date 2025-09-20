@@ -784,7 +784,18 @@
                 const chart = echarts.init(dom, techTheme);
                 const responseRateData = modelChartData.response_rate_by_dimension;
                 const option = {
-                    tooltip: { trigger: 'axis', valueFormatter: (value) => value.toFixed(2) + '%' },
+                    tooltip: {
+                        trigger: 'item',
+                        formatter: function(params) {
+                            let tooltipContent = '<strong>' + params.name + '</strong><br/>';
+                            const values = params.data.value;
+                            const indicators = responseRateData.labels;
+                            indicators.forEach((indicator, index) => {
+                                tooltipContent += indicator + ': ' + values[index].toFixed(2) + '%<br/>';
+                            });
+                            return tooltipContent;
+                        }
+                    },
                     legend: { data: ['响应率'], orient: 'vertical', right: 10, top: 20 },
                     radar: {
                         indicator: responseRateData.labels.map(name => ({ name: name, max: 100 })),
@@ -795,7 +806,7 @@
                     series: [{
                         name: '响应率',
                         type: 'radar',
-                        label: { show: true, fontWeight: 'bold', formatter: (params) => params.value.toFixed(2) },
+                        label: { show: true, fontWeight: 'bold', formatter: (params) => params.value.toFixed(2) + '%' },
                         data: [{ value: responseRateData.datasets[0].data, name: '响应率' }]
                     }]
                 };
@@ -811,18 +822,69 @@
             if(dom) {
                 const chart = echarts.init(dom, techTheme);
                 const scoreData = modelChartData.avg_scores_by_dimension;
+
+                const processedScoreData = scoreData.datasets[0].data.map((value, index) => {
+                    const percentageValue = (value / 5 * 100);
+                    return {
+                        name: scoreData.labels[index],
+                        value: percentageValue,
+                        originalScore: value,
+                        itemStyle: {
+                            color: techTheme.color[index % techTheme.color.length]
+                        }
+                    };
+                });
+
                 const option = {
-                    tooltip: { trigger: 'item', formatter: (params) => `${params.name}: ${(params.value / 20).toFixed(2)}分 (${params.value.toFixed(2)}%)` },
-                    polar: { radius: ['20%', '80%'] },
-                    radiusAxis: { type: 'category', data: scoreData.labels, show: false },
-                    angleAxis: { max: 100, startAngle: 90, clockwise: true, axisLabel: { formatter: '{value}%' } },
+                    tooltip: {
+                        trigger: 'item',
+                        formatter: function(params) {
+                            return `
+                                <div style="font-weight: 600; margin-bottom: 4px;">${params.data.name}</div>
+                                <div>得分: ${(params.data.originalScore / 5 * 100).toFixed(2)}%</div>
+                            `;
+                        }
+                    },
+                    polar: {
+                        radius: ['20%', '80%']
+                    },
+                    radiusAxis: {
+                        type: 'category',
+                        data: processedScoreData.map(item => item.name),
+                        axisLabel: { show: false },
+                        axisLine: { show: false },
+                        axisTick: { show: false }
+                    },
+                    angleAxis: {
+                        type: 'value',
+                        max: 360,
+                        startAngle: 90,
+                        clockwise: true,
+                        axisLabel: {
+                            show: true,
+                            formatter: function(value) {
+                                const percentage = (value * 100 / 270);
+                                return percentage <= 100 ? percentage.toFixed(0) + '%' : '';
+                            },
+                            fontSize: 10,
+                            color: '#000000'
+                        },
+                        splitLine: {
+                            show: true,
+                            lineStyle: {
+                                color: 'rgba(203, 213, 225, 0.3)',
+                                width: 1
+                            }
+                        },
+                        axisLine: { show: false },
+                        axisTick: { show: false }
+                    },
                     series: [{
                         type: 'bar',
                         coordinateSystem: 'polar',
-                        data: scoreData.datasets[0].data.map((value, index) => ({
-                            value: value * 20,
-                            name: scoreData.labels[index],
-                            itemStyle: { color: techTheme.color[index % techTheme.color.length] }
+                        data: processedScoreData.map(item => ({
+                            ...item,
+                            value: item.value * 270 / 100
                         })),
                         barWidth: '60%',
                         roundCap: true,
@@ -830,10 +892,12 @@
                             show: true,
                             position: 'start',
                             distance: 15,
-                            formatter: (params) => `${params.name} ${(params.value / 20).toFixed(2)}分`,
+                            formatter: function(params) {
+                                return `${params.data.name} ${(params.data.originalScore / 5 * 100).toFixed(2)}%`;
+                            },
                             fontSize: 11,
                             fontWeight: 'bold',
-                            color: '#000',
+                            color: techTheme.textStyle.color,
                             align: 'right'
                         }
                     }]

@@ -468,8 +468,16 @@
 
                 const responseOption = {
                     tooltip: {
-                        trigger: 'axis',
-                        valueFormatter: (value) => value.toFixed(2) + '%'
+                        trigger: 'item',
+                        formatter: function(params) {
+                            let tooltipContent = '<strong>' + params.name + '</strong><br/>';
+                            const values = params.data.value;
+                            const indicators = responseRateData.map(item => item.name);
+                            indicators.forEach((indicator, index) => {
+                                tooltipContent += indicator + ': ' + values[index].toFixed(2) + '%<br/>';
+                            });
+                            return tooltipContent;
+                        }
                     },
                     legend: {
                         data: ['响应率'],
@@ -494,7 +502,7 @@
                             show: true,
                             fontWeight: 'bold',
                             formatter: function(params) {
-                                return params.value.toFixed(2);
+                                return params.value.toFixed(2) + '%';
                             }
                         },
                         data: [
