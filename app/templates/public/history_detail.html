@@ -515,7 +515,7 @@
             backgroundColor: 'transparent',
             textStyle: { color: 'var(--tech-text-primary)' },
             title: { textStyle: { color: 'var(--tech-text-primary)' } },
-            legend: { textStyle: { color: 'var(--tech-text-secondary)' } },
+            legend: { textStyle: { color: '#000000' } },
             tooltip: {
                 backgroundColor: 'rgba(22, 28, 45, 0.95)',
                 borderColor: 'rgba(203, 213, 225, 0.2)',
@@ -566,7 +566,7 @@
                     grid: { left: '10%', right: '10%', bottom: '10%', top: '10%' },
                     tooltip: { formatter: params => `${params.value[2]}<br/>响应率: ${params.value[0].toFixed(2)}%<br/>总得分: ${params.value[1].toFixed(2)}%` },
                     xAxis: { name: '响应率 (%)', nameLocation: 'middle', nameGap: 30, min: 80, max: 100, splitLine: { show: false } },
-                    yAxis: { name: '总得分 (%)', nameLocation: 'middle', nameGap: 40, min: 40, max: 80, axisLabel: { formatter: '{value}%' }, splitLine: { show: false } },
+                    yAxis: { name: '总得分 (%)', nameLocation: 'middle', nameGap: 40, min: 50, max: 80, axisLabel: { formatter: '{value}%' }, splitLine: { show: false } },
                     series: [
                         { type: 'line', markLine: { silent: true, symbol: 'none', lineStyle: { type: 'dashed', color: 'rgba(203, 213, 225, 0.7)', width: 2 }, data: [{ xAxis: rateThreshold }, { yAxis: scoreThreshold * 20 }], label: { show: false } } },
                         { name: '模型分布', type: 'scatter', symbolSize: 20, data: leaderboardData.map(item => [item.response_rate, item.avg_score * 20, item.name]), itemStyle: { borderColor: '#fff', borderWidth: 2, shadowBlur: 10, shadowColor: 'rgba(0, 0, 0, 0.3)' }, label: { show: true, formatter: params => params.data[2], position: 'top', fontSize: 12, fontWeight: 'bold' } }
