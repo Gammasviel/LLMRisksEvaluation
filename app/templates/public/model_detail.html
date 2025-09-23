@@ -225,29 +225,44 @@
             border-radius: 4px 0 0 4px;
         }
         
-        .pulse-dot {
-            width: 12px;
-            height: 12px;
-            background: var(--tech-accent-green);
-            border-radius: 50%;
-            display: inline-block;
-            position: relative;
-            animation: pulse-dot 2s infinite;
-        }
+                .pulse-dot {
+                    width: 12px;
+                    height: 12px;
+                    background: var(--tech-accent-green);
+                    border-radius: 50%;
+                    display: inline-block;
+                    position: relative;
+                    animation: pulse-dot 2s infinite;
+                }
         
-        @keyframes pulse-dot {
-            0% {
-                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
-            }
-            70% {
-                box-shadow: 0 0 0 10px rgba(16, 185, 129, 0);
-            }
-            100% {
-                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
-            }
-        }
-    </style>
-    
+                        .score-bar {
+                            width: 100%;
+                            height: 8px;
+                            background: var(--tech-bg-secondary);
+                            border-radius: 4px;
+                            overflow: hidden;
+                            position: relative;
+                        }        
+                .score-fill {
+                    height: 100%;
+                    background: var(--tech-gradient-1);
+                    border-radius: 4px;
+                    transition: width 0.6s ease;
+                    position: relative;
+                }
+        
+                @keyframes pulse-dot {
+                    0% {
+                        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+                    }
+                    70% {
+                        box-shadow: 0 0 0 10px rgba(16, 185, 129, 0);
+                    }
+                    100% {
+                        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+                    }
+                }
+            </style>    
     <!-- 新增：主题切换脚本 -->
     <!-- <script src="{{ url_for('static', filename='js/theme-switcher.js') }}"></script> -->
 </head>
@@ -383,7 +398,6 @@
                         <tr>
                             <th>评估维度</th>
                             <th>平均得分</th>
-                            <th style="width: 40%;">表现进度</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -391,14 +405,11 @@
                         <tr>
                             <td style="font-weight: 600;">{{ item.name }}</td>
                             <td>
-                                <span style="font-size: 1.125rem; font-weight: 700; color: #000000;">
-                                    {{ "%.2f"|format(item.avg_score) }}
-                                </span>
-                            </td>
-                            <td>
-                                <!-- 假设总分是5分 -->
-                                <div class="tech-progress">
-                                    <div class="tech-progress-bar" style="width: {{ (item.avg_score / 5 * 100) }}%"></div>
+                                <div style="display: flex; align-items: center; gap: 1rem;">
+                                    <span style="font-weight: 600; color: #000000; min-width: 60px;">{{ "%.2f%%" | format(item.avg_score / 5 * 100) }}</span>
+                                    <div class="score-bar">
+                                        <div class="score-fill" style="width: {{ (item.avg_score / 5 * 100)|round(2) }}%"></div>
+                                    </div>
                                 </div>
                             </td>
                         </tr>
