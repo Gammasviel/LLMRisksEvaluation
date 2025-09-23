@@ -20,8 +20,12 @@ def register_blueprints(app):
 def initialize():
     
     logger.info("Flask app creation started.")
-    app = Flask(__name__)
-    app.config.from_pyfile('config.py')
+    app = Flask(__name__, instance_relative_config=True)
+    
+    # Load default config from app/config.py
+    app.config.from_object('app.config')
+    # Load instance config from instance/config.py, overriding default settings
+    app.config.from_pyfile('config.py', silent=True)
     
     # logger.info("Configuring uploads.")
     configure_uploads(app, icons)

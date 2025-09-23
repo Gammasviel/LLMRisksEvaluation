@@ -247,15 +247,10 @@
                 时间筛选
             </h4>
             <form class="filter-form" method="GET">
-                <div class="form-group">
-                    <label class="form-label" for="start_date">起始日期</label>
-                    <input type="text" id="start_date" name="start_date" class="form-input" 
-                           placeholder="选择起始日期" value="{{ start_date or '' }}">
-                </div>
-                <div class="form-group">
-                    <label class="form-label" for="end_date">结束日期</label>
-                    <input type="text" id="end_date" name="end_date" class="form-input" 
-                           placeholder="选择结束日期" value="{{ end_date or '' }}">
+                <div class="form-group" style="grid-column: 1 / span 2;">
+                    <label class="form-label" for="date-selector">选择日期</label>
+                    <input type="text" id="date-selector" name="date" class="form-input" 
+                           placeholder="仅显示有记录的日期" value="{{ selected_date or '' }}">
                 </div>
                 <button type="submit" class="filter-btn">
                     <i class="bi bi-search"></i>
@@ -350,79 +345,50 @@
         document.addEventListener('DOMContentLoaded', function() {
             // 配置中文本地化
             flatpickr.localize(flatpickr.l10ns.zh);
-            
-            // 初始化起始日期选择器
-            const startDatePicker = flatpickr("#start_date", {
+
+            const availableDates = {{ available_dates | tojson }};
+
+            // 初始化日期选择器
+            const datePicker = flatpickr("#date-selector", {
                 dateFormat: "Y-m-d",
                 locale: "zh",
+                enable: availableDates, // 仅启用有数据的日期
                 allowInput: true,
                 clickOpens: true,
                 onChange: function(selectedDates, dateStr, instance) {
-                    // 当选择起始日期时，设置结束日期的最小值
-                    if (selectedDates.length > 0) {
-                        endDatePicker.set('minDate', selectedDates[0]);
+                    // 选择日期后自动提交表单
+                    if (dateStr) {
+                        instance.input.form.submit();
                     }
                 }
             });
-            
-            // 初始化结束日期选择器
-            const endDatePicker = flatpickr("#end_date", {
-                dateFormat: "Y-m-d",
-                locale: "zh", 
-                allowInput: true,
-                clickOpens: true,
-                onChange: function(selectedDates, dateStr, instance) {
-                    // 当选择结束日期时，设置起始日期的最大值
-                    if (selectedDates.length > 0) {
-                        startDatePicker.set('maxDate', selectedDates[0]);
-                    }
-                }
-            });
-            
-            // 如果已有值，设置对应的约束
-            const startValue = document.getElementById('start_date').value;
-            const endValue = document.getElementById('end_date').value;
-            
-            if (startValue) {
-                endDatePicker.set('minDate', startValue);
-            }
-            if (endValue) {
-                startDatePicker.set('maxDate', endValue);
-            }
-            
-            // 表单提交前验证
-            document.querySelector('.filter-form').addEventListener('submit', function(e) {
-                const startDate = document.getElementById('start_date').value;
-                const endDate = document.getElementById('end_date').value;
-                
-                if (startDate && endDate && new Date(startDate) > new Date(endDate)) {
-                    e.preventDefault();
-                    alert('起始日期不能晚于结束日期');
-                    return false;
-                }
-            });
-            
+
             // 添加筛选状态提示
             const urlParams = new URLSearchParams(window.location.search);
-            const hasFilters = urlParams.has('start_date') || urlParams.has('end_date');
+            const hasFilters = urlParams.has('date') && urlParams.get('date') !== '';
             
             if (hasFilters) {
                 const filterSection = document.querySelector('.filter-section');
-                const indicator = document.createElement('div');
-                indicator.style.cssText = `
-                    background: rgba(65, 237, 237, 0.1);
-                    border: 1px solid var(--tech-accent-cyan);
-                    border-radius: 0.5rem;
-                    padding: 0.5rem 1rem;
-                    margin-bottom: 1rem;
-                    color: var(--tech-accent-cyan);
-                    font-size: 0.875rem;
-                    display: flex;
-                    align-items: center;
-                    gap: 0.5rem;
-                `;
-                indicator.innerHTML = '<i class="bi bi-info-circle"></i>当前正在使用时间筛选';
-                filterSection.appendChild(indicator);
+                // 避免重复添加提示
+                if (!filterSection.querySelector('.filter-indicator')) {
+                    const indicator = document.createElement('div');
+                    indicator.className = 'filter-indicator'; // 用于识别
+                    indicator.style.cssText = `
+                        background: rgba(65, 237, 237, 0.1);
+                        border: 1px solid var(--tech-accent-cyan);
+                        border-radius: 0.5rem;
+                        padding: 0.5rem 1rem;
+                        margin-top: 1rem; /* 与表单保持间距 */
+                        color: var(--tech-accent-cyan);
+                        font-size: 0.875rem;
+                        display: flex;
+                        align-items: center;
+                        gap: 0.5rem;
+                    `;
+                    indicator.innerHTML = '<i class="bi bi-info-circle"></i>当前已按日期筛选';
+                    // 将提示插入到表单之后
+                    document.querySelector('.filter-form').insertAdjacentElement('afterend', indicator);
+                }
             }
         });
     </script>

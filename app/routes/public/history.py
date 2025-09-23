@@ -2,6 +2,8 @@ import logging
 from flask import Blueprint, render_template, flash, redirect, url_for, request
 from app.models import EvaluationHistory
 from datetime import datetime
+from sqlalchemy import func
+from app.extensions import db
 
 logger = logging.getLogger('history_routes')
 history_bp = Blueprint('history', __name__, url_prefix='/history')
@@ -11,34 +13,35 @@ def evaluation_history():
     """显示历史评估记录"""
     logger.info("Accessing evaluation history page.")
     try:
-        start_date = request.args.get('start_date')
-        end_date = request.args.get('end_date')
+        # 获取所有有评估记录的日期，使用 strftime 确保在 SQLite 上正常工作
+        available_dates_query = db.session.query(func.distinct(func.strftime('%Y-%m-%d', EvaluationHistory.timestamp))).all()
+        available_dates = [d[0] for d in available_dates_query]
+
+        selected_date_str = request.args.get('date')
         query = EvaluationHistory.query
-        if start_date:
+
+        if selected_date_str:
             try:
-                start_dt = datetime.strptime(start_date, '%Y-%m-%d')
-                query = query.filter(EvaluationHistory.timestamp >= start_dt)
+                selected_dt = datetime.strptime(selected_date_str, '%Y-%m-%d')
+                start_of_day = selected_dt.replace(hour=0, minute=0, second=0)
+                end_of_day = selected_dt.replace(hour=23, minute=59, second=59)
+                query = query.filter(EvaluationHistory.timestamp.between(start_of_day, end_of_day))
             except ValueError:
-                flash('起始日期格式无效，请使用 YYYY-MM-DD 格式', 'warning')
-        if end_date:
-            try:
-                end_dt = datetime.strptime(end_date, '%Y-%m-%d')
-                end_dt = end_dt.replace(hour=23, minute=59, second=59)
-                query = query.filter(EvaluationHistory.timestamp <= end_dt)
-            except ValueError:
-                flash('结束日期格式无效，请使用 YYYY-MM-DD 格式', 'warning')
+                flash('日期格式无效，请使用 YYYY-MM-DD 格式', 'warning')
+
         history_records = query.order_by(EvaluationHistory.timestamp.desc()).all()
+        
         return render_template('public/evaluation_history.html', 
                              history_records=history_records,
-                             start_date=start_date,
-                             end_date=end_date)
+                             available_dates=available_dates,
+                             selected_date=selected_date_str)
     except Exception as e:
         logger.error(f"Error loading evaluation history: {e}", exc_info=True)
         flash('加载历史记录时发生错误，请检查日志。', 'danger')
         return render_template('public/evaluation_history.html', 
                              history_records=[],
-                             start_date=None,
-                             end_date=None)
+                             available_dates=[],
+                             selected_date=None)
 
 @history_bp.route('/<int:history_id>')
 def history_detail(history_id):

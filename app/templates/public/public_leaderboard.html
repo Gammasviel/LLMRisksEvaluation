@@ -407,72 +407,6 @@
             </div>
         </div>
 
-        <!-- --- 新增开始: Model-specific analysis tabs --- -->
-        {% if charts_data %}
-        <div class="tech-card">
-            <h3 class="tech-card-title">各模型维度详细分析</h3>
-            <div class="tabs">
-                {% for model_name in charts_data.keys() %}
-                    <button class="tab-link" onclick="openTab(event, '{{ model_name }}')">{{ model_name }}</button>
-                {% endfor %}
-            </div>
-
-            {% for model_name, data in charts_data.items() %}
-            <div id="{{ model_name }}" class="tab-content">
-                <!-- 图表区域 - 使用chart-grid布局 -->
-                <div class="chart-grid">
-                    <div class="tech-card">
-                        <h3 class="tech-card-title">各维度响应率分析</h3>
-                        <div id="response-rate-chart-{{ model_name }}" class="tech-chart-container"></div>
-                    </div>
-                    
-                    <div class="tech-card">
-                        <h3 class="tech-card-title">各维度得分分析</h3>
-                        <div id="avg-score-chart-{{ model_name }}" class="tech-chart-container"></div>
-                    </div>
-                </div>
-                
-                <!-- Bias Analysis for this model -->
-                {% if data.bias_analysis_data %}
-                <div class="tech-card">
-                    <h3 class="tech-card-title">模型价值观与公平性分析 (偏见歧视分析)</h3>
-                    <div style="overflow-x: auto;">
-                        <table class="tech-table">
-                            <thead>
-                                <tr>
-                                    <th>评估维度</th>
-                                    <th>平均得分</th>
-                                    <th style="width: 40%;">表现进度</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for bias_item in data.bias_analysis_data %}
-                                <tr>
-                                    <td style="font-weight: 600;">{{ bias_item.name }}</td>
-                                    <td>
-                                        <span style="font-size: 1.125rem; font-weight: 700; color: #000000;">
-                                            {{ "%.2f"|format(bias_item.avg_score) }}
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <!-- 假设总分是5分 -->
-                                        <div class="tech-progress">
-                                            <div class="tech-progress-bar" style="width: {{ (bias_item.avg_score / 5 * 100) }}%"></div>
-                                        </div>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                {% endif %}
-            </div>
-            {% endfor %}
-        </div>
-        {% endif %}
-        <!-- --- 新增结束 --- -->
-
         <!-- 图表区域 -->
         <div class="tech-card">
             <h3 class="tech-card-title">
@@ -540,6 +474,73 @@
             </h3>
             <div id="question-type-bar-chart" class="tech-chart-container"></div>
         </div>
+        
+        <!-- --- 新增开始: Model-specific analysis tabs --- -->
+        {% if charts_data %}
+        <div class="tech-card">
+            <h3 class="tech-card-title">各模型维度详细分析</h3>
+            <div class="tabs">
+                {% for model_name in charts_data.keys() %}
+                    <button class="tab-link" onclick="openTab(event, '{{ model_name }}')">{{ model_name }}</button>
+                {% endfor %}
+            </div>
+
+            {% for model_name, data in charts_data.items() %}
+            <div id="{{ model_name }}" class="tab-content">
+                <!-- 图表区域 - 使用chart-grid布局 -->
+                <div class="chart-grid">
+                    <div class="tech-card">
+                        <h3 class="tech-card-title">各维度响应率分析</h3>
+                        <div id="response-rate-chart-{{ model_name }}" class="tech-chart-container"></div>
+                    </div>
+                    
+                    <div class="tech-card">
+                        <h3 class="tech-card-title">各维度得分分析</h3>
+                        <div id="avg-score-chart-{{ model_name }}" class="tech-chart-container"></div>
+                    </div>
+                </div>
+                
+                <!-- Bias Analysis for this model -->
+                {% if data.bias_analysis_data %}
+                <div class="tech-card">
+                    <h3 class="tech-card-title">模型价值观与公平性分析 (偏见歧视分析)</h3>
+                    <div style="overflow-x: auto;">
+                        <table class="tech-table">
+                            <thead>
+                                <tr>
+                                    <th>评估维度</th>
+                                    <th>平均得分</th>
+                                    <th style="width: 40%;">表现进度</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for bias_item in data.bias_analysis_data %}
+                                <tr>
+                                    <td style="font-weight: 600;">{{ bias_item.name }}</td>
+                                    <td>
+                                        <span style="font-size: 1.125rem; font-weight: 700; color: #000000;">
+                                            {{ "%.2f"|format(bias_item.avg_score) }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <!-- 假设总分是5分 -->
+                                        <div class="tech-progress">
+                                            <div class="tech-progress-bar" style="width: {{ (bias_item.avg_score / 5 * 100) }}%"></div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        <!-- --- 新增结束 --- -->
+
         {% endif %}
 
     </div>
