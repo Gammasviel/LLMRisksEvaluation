@@ -7,7 +7,7 @@ from app.core.constants import DEFAULT_CRITERIA, QUESTION_TEMPLATE, RATERS, DEFA
 from app.core.llm import clients
 from celery import Celery, group
 from celery.schedules import crontab
-from celery.signals import after_setup_logger
+from celery.signals import after_setup_logger, worker_process_init
 from app.core.utils import setup_logging, rate_answer, generate_leaderboard_data
 from app.core.chart_export import export_all_charts
 from app.core.report_export import export_report
@@ -27,10 +27,22 @@ celery.conf.beat_schedule = {
 
 class ContextTask(celery.Task):
     def __call__(self, *args, **kwargs):
+        import logging
+        # Suppress verbose app creation logs
+        main_app_logger = logging.getLogger('main_app')
+        original_level = main_app_logger.level
+        main_app_logger.setLevel(logging.WARNING)
+
         from app import create_app
         flask_app = create_app()
+
+        # Restore log level
+        main_app_logger.setLevel(original_level)
+
         with flask_app.app_context():
             return self.run(*args, **kwargs)
+
+celery.Task = ContextTask
 
 celery.Task = ContextTask
 

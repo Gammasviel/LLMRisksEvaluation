@@ -125,15 +125,23 @@ class LLMClient:
 
 class Clients:
     clients: dict[int: LLMClient] = {}
+    _initialized = False  # Add an initialization flag
     
     def __init__(self, models: list[dict] = None):
         if not models is None:
             self.create_clients(models)
     
     def create_clients(self, models: list[dict]):
+        if self._initialized:
+            logger.info("Clients already initialized, skipping creation.")
+            return
+
         logger.info(f"Creating/updating a total of {len(models)} LLM clients.")
         for model in models:
             self.create_client(**model)
+        
+        if models:
+            self._initialized = True
     
     def create_client(self, id: int, name: str, model: str, base_url: str, api_keys: list[str], proxy: str):
         logger.info(f"Initializing client for model '{name}' (ID: {id}) with {len(api_keys)} API key(s).")

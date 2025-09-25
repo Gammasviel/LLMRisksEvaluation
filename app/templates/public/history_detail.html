@@ -42,12 +42,14 @@
         }
 
         .score-bar {
-            width: 100%;
+            width: 100px;
             height: 8px;
             background: var(--tech-bg-secondary);
             border-radius: 4px;
             overflow: hidden;
             position: relative;
+            display: inline-block;
+            margin-left: 10px;
         }
         
         .score-fill {
@@ -454,7 +456,7 @@
                                         <td>
                                             <div style="display: flex; align-items: center; gap: 1rem;">
                                                 <span style="font-weight: 600; color: #000000; min-width: 60px;">{{ "%.2f%%" | format(bias_item.avg_score / 5 * 100) }}</span>
-                                                <div class="score-bar">
+                                                <div class="score-bar" style="width: 100%;">
                                                     <div class="score-fill" style="width: {{ (bias_item.avg_score / 5 * 100)|round(2) }}%"></div>
                                                 </div>
                                             </div>
@@ -530,6 +532,29 @@
             }
         };
 
+        const quadrantColors = {
+            prudent: '#7282d6',
+            extensive: '#41eded',
+            refined: '#89b1fe',
+            lax: '#3fc1eb'
+        };
+
+        function getQuadrantColor(item, rateThreshold, scoreThreshold) {
+            const score = item.avg_score * 20;
+            const rate = item.response_rate;
+            const scoreLimit = scoreThreshold * 20;
+
+            if (rate < rateThreshold && score > scoreLimit) {
+                return quadrantColors.prudent; // Top-left
+            } else if (rate > rateThreshold && score > scoreLimit) {
+                return quadrantColors.refined; // Top-right
+            } else if (rate < rateThreshold && score < scoreLimit) {
+                return quadrantColors.lax; // Bottom-left
+            } else { // rate > rateThreshold && score < scoreLimit
+                return quadrantColors.extensive; // Bottom-right
+            }
+        }
+
         const initCharts = () => {
             // 1. 综合性能柱状图
             const overallChartDom = document.getElementById('overall-bar-chart');
@@ -563,7 +588,22 @@
                     yAxis: { name: '总得分 (%)', nameLocation: 'middle', nameGap: 40, min: 50, max: 80, axisLabel: { formatter: '{value}%' }, splitLine: { show: false } },
                     series: [
                         { type: 'line', markLine: { silent: true, symbol: 'none', lineStyle: { type: 'dashed', color: 'rgba(203, 213, 225, 0.7)', width: 2 }, data: [{ xAxis: rateThreshold }, { yAxis: scoreThreshold * 20 }], label: { show: false } } },
-                        { name: '模型分布', type: 'scatter', symbolSize: 20, data: leaderboardData.map(item => [item.response_rate, item.avg_score * 20, item.name]), itemStyle: { borderColor: '#fff', borderWidth: 2, shadowBlur: 10, shadowColor: 'rgba(0, 0, 0, 0.3)' }, label: { show: true, formatter: params => params.data[2], position: 'top', fontSize: 12, fontWeight: 'bold' } }
+                        { 
+                            name: '模型分布', 
+                            type: 'scatter', 
+                            symbolSize: 20, 
+                            data: leaderboardData.map(item => ({
+                                value: [item.response_rate, item.avg_score * 20, item.name],
+                                itemStyle: {
+                                    color: getQuadrantColor(item, rateThreshold, scoreThreshold),
+                                    borderColor: '#fff',
+                                    borderWidth: 2,
+                                    shadowBlur: 10,
+                                    shadowColor: 'rgba(0, 0, 0, 0.3)'
+                                }
+                            })),
+                            label: { show: true, formatter: p => p.value[2], position: 'top', fontSize: 12, fontWeight: 'bold' } 
+                        }
                     ]
                 };
                 chart.setOption(option);
