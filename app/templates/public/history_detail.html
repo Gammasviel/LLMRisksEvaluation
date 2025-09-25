@@ -577,15 +577,50 @@
                 window.charts.overallChart = chart;
             }
 
-            // 2. 四象限图 (restoring original logic)
+            // 2. 四象限图
             const quadrantChartDom = document.getElementById('quadrant-chart');
             if (quadrantChartDom) {
                 const chart = echarts.init(quadrantChartDom, window.techTheme);
+
+                const responseRates = leaderboardData.map(item => item.response_rate);
+                const avgScores = leaderboardData.map(item => item.avg_score * 20);
+
+                const rateMin = Math.min(...responseRates);
+                const rateMax = Math.max(...responseRates);
+                const scoreMin = Math.min(...avgScores);
+                const scoreMax = Math.max(...avgScores);
+
+                const rateRange = (rateMax - rateMin) * 0.05;
+                const scoreRange = (scoreMax - scoreMin) * 0.05;
+
                 const option = {
                     grid: { left: '10%', right: '10%', bottom: '10%', top: '10%' },
                     tooltip: { formatter: params => `${params.value[2]}<br/>响应率: ${params.value[0].toFixed(2)}%<br/>总得分: ${params.value[1].toFixed(2)}%` },
-                    xAxis: { name: '响应率 (%)', nameLocation: 'middle', nameGap: 30, min: 80, max: 100, splitLine: { show: false } },
-                    yAxis: { name: '总得分 (%)', nameLocation: 'middle', nameGap: 40, min: 50, max: 80, axisLabel: { formatter: '{value}%' }, splitLine: { show: false } },
+                    xAxis: { 
+                        name: '响应率 (%)', 
+                        nameLocation: 'middle', 
+                        nameGap: 30, 
+                        min: rateMin - rateRange,
+                        max: rateMax + rateRange,
+                        splitLine: { show: false },
+                        axisLabel: { 
+                            showMinLabel: false, 
+                            showMaxLabel: false 
+                        }
+                    },
+                    yAxis: { 
+                        name: '总得分 (%)', 
+                        nameLocation: 'middle', 
+                        nameGap: 40, 
+                        min: scoreMin - scoreRange,
+                        max: scoreMax + scoreRange,
+                        axisLabel: { 
+                            formatter: '{value}%',
+                            showMinLabel: false, 
+                            showMaxLabel: false 
+                        }, 
+                        splitLine: { show: false } 
+                    },
                     series: [
                         { type: 'line', markLine: { silent: true, symbol: 'none', lineStyle: { type: 'dashed', color: 'rgba(203, 213, 225, 0.7)', width: 2 }, data: [{ xAxis: rateThreshold }, { yAxis: scoreThreshold * 20 }], label: { show: false } } },
                         { 

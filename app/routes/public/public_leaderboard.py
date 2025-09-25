@@ -4,10 +4,7 @@ import logging
 from flask import Blueprint, render_template, flash, redirect, url_for, request
 from app.models import Question, EvaluationHistory
 from app.extensions import db
-from app.core.constants import (
-    QUADRANT_SCORE_THRESHOLD, 
-    QUADRANT_RESPONSE_RATE_THRESHOLD
-)
+
 from app.core.utils import generate_leaderboard_data
 
 public_leaderboard_bp = Blueprint('public_leaderboard', __name__)
@@ -55,11 +52,22 @@ def display_public_leaderboard():
             }
         # --- 新增结束 ---
         
+        leaderboard_data = data['leaderboard']
+
+        if leaderboard_data:
+            avg_scores = [item['avg_score'] for item in leaderboard_data]
+            response_rates = [item['response_rate'] for item in leaderboard_data]
+            score_threshold = sum(avg_scores) / len(avg_scores)
+            rate_threshold = sum(response_rates) / len(response_rates)
+        else:
+            score_threshold = 0
+            rate_threshold = 0
+
         return render_template('public/public_leaderboard.html', 
-                               leaderboard=data['leaderboard'], 
+                               leaderboard=leaderboard_data, 
                                l1_dimensions=data['l1_dimensions'],
-                               score_threshold=QUADRANT_SCORE_THRESHOLD,
-                               rate_threshold=QUADRANT_RESPONSE_RATE_THRESHOLD,
+                               score_threshold=score_threshold,
+                               rate_threshold=rate_threshold,
                                current_sort_by=sort_by,
                                current_sort_order=sort_order,
                                charts_data=charts_data) # <-- 传递新数据
@@ -68,12 +76,13 @@ def display_public_leaderboard():
         logger.error(f"Error generating public leaderboard: {e}", exc_info=True)
         flash('生成榜单时发生错误，请检查日志。', 'danger')
         return render_template('public/public_leaderboard.html', 
-                               leaderboard=[], 
-                               l1_dimensions=[],
-                               score_threshold=QUADRANT_SCORE_THRESHOLD,
-                               rate_threshold=QUADRANT_RESPONSE_RATE_THRESHOLD,
+                               leaderboard=leaderboard_data, 
+                               l1_dimensions=data['l1_dimensions'],
+                               score_threshold=score_threshold,
+                               rate_threshold=rate_threshold,
                                current_sort_by=sort_by,
-                               current_sort_order=sort_order)
+                               current_sort_order=sort_order,
+                               charts_data=charts_data) # <-- 传递新数据
 
 @public_leaderboard_bp.route('/update-all', methods=['POST'])
 def update_all_models():

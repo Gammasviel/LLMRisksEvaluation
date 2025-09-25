@@ -89,12 +89,21 @@ def history_detail(history_id):
                 # NOTE: Bias analysis chart cannot be generated as raw data is not stored in history.
             }
 
+        if leaderboard_data:
+            avg_scores = [item['avg_score'] for item in leaderboard_data]
+            response_rates = [item['response_rate'] for item in leaderboard_data]
+            score_threshold = sum(avg_scores) / len(avg_scores)
+            rate_threshold = sum(response_rates) / len(response_rates)
+        else:
+            score_threshold = 0
+            rate_threshold = 0
+
         return render_template('public/history_detail.html',
                              history_record=history_record,
                              leaderboard=leaderboard_data,
                              l1_dimensions=history_record.dimensions,
-                             score_threshold=history_record.extra_info.get('score_threshold', 3.0),
-                             rate_threshold=history_record.extra_info.get('rate_threshold', 90.0),
+                             score_threshold=score_threshold,
+                             rate_threshold=rate_threshold,
                              current_sort_by=sort_by,
                              current_sort_order=sort_order,
                              charts_data=charts_data)
