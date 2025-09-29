@@ -18,6 +18,9 @@ logger = logging.getLogger('celery_tasks')
 
 celery = Celery('tasks', broker='redis://localhost:6379/0', backend='redis://localhost:6379/0')
 
+# Global Flask app instance for worker process
+_flask_app = None
+
 celery.conf.beat_schedule = {
     'update-all-models-every-sunday': {
         'task': 'tasks.update_all_models_task',
@@ -25,24 +28,27 @@ celery.conf.beat_schedule = {
     },
 }
 
+@worker_process_init.connect
+def init_worker(**kwargs):
+    """Initialize Flask app once per worker process"""
+    global _flask_app
+    if _flask_app is None:
+        logger.info("Initializing Flask app for worker process...")
+        from app import create_app
+        _flask_app = create_app()
+        logger.info("Flask app initialized successfully for worker process.")
+
 class ContextTask(celery.Task):
     def __call__(self, *args, **kwargs):
-        import logging
-        # Suppress verbose app creation logs
-        main_app_logger = logging.getLogger('main_app')
-        original_level = main_app_logger.level
-        main_app_logger.setLevel(logging.WARNING)
+        global _flask_app
+        if _flask_app is None:
+            # Fallback if worker init failed
+            logger.warning("Flask app not initialized in worker, creating new instance...")
+            from app import create_app
+            _flask_app = create_app()
 
-        from app import create_app
-        flask_app = create_app()
-
-        # Restore log level
-        main_app_logger.setLevel(original_level)
-
-        with flask_app.app_context():
+        with _flask_app.app_context():
             return self.run(*args, **kwargs)
-
-celery.Task = ContextTask
 
 celery.Task = ContextTask
 

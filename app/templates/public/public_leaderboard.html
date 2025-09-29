@@ -654,7 +654,7 @@
                         axisLabel: { interval: 0, rotate: 30 },
                         triggerEvent: true
                     },
-                    yAxis: [{ type: 'value', name: '百分比', min: 0, max: 100, axisLabel: { formatter: '{value}%' } }],
+                    yAxis: [{ type: 'value', min: 0, max: 100, axisLabel: { formatter: '{value}%' } }],
                     series: [
                         {
                             name: '总得分',
@@ -797,7 +797,7 @@
                     },
                     legend: { data: ['客观题得分', '主观题得分'], top: 10 },
                     grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
-                    xAxis: { type: 'value', name: '平均得分 (%)', min: 0, max: 100, axisLabel: { formatter: '{value}%' } },
+                    xAxis: { type: 'value', min: 0, max: 100, axisLabel: { formatter: '{value}%' } },
                     yAxis: { type: 'category', data: leaderboardData.map(item => item.name), axisLabel: { interval: 0 } },
                     series: [
                         { name: '客观题得分', type: 'bar', barGap: '20%', emphasis: { focus: 'series' }, data: leaderboardData.map(item => parseFloat((item.avg_obj_score / 5 * 100).toFixed(2))) },
