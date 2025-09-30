@@ -265,61 +265,60 @@
 
         {% if history_records %}
         <div class="history-grid">
-            {% for record in history_records %}
-            <div class="tech-card">
-                <div class="history-header">
-                    <div>
-                        <div class="history-time">
-                            {{ record.timestamp.strftime('%Y年%m月%d日 %H:%M:%S') }}
+            {% for group in history_records | groupby('date_for_grouping') %}
+                {% set day_records = group.list %}
+                {% set multiple_records = day_records | length > 1 %}
+                
+                {% for record in day_records %}
+                <div class="tech-card">
+                    <div class="history-header">
+                        <div>
+                            <div class="history-time">
+                                {{ record.timestamp.strftime('%Y年%m月%d日') }}
+                                {% if multiple_records %}
+                                    #{{ record.id }}
+                                {% endif %}
+                            </div>
+                            <div style="color: var(--tech-text-muted); font-size: 0.875rem; margin-top: 0.5rem;">
+                                评估快照记录
+                            </div>
                         </div>
-                        <div style="color: var(--tech-text-muted); font-size: 0.875rem; margin-top: 0.5rem;">
-                            评估快照记录 #{{ record.id }}
-                        </div>
+                        <a href="{{ url_for('history.history_detail', history_id=record.id) }}" class="view-detail-btn">
+                            <i class="bi bi-eye"></i>
+                            查看详情
+                        </a>
                     </div>
-                    <a href="{{ url_for('history.history_detail', history_id=record.id) }}" class="view-detail-btn">
-                        <i class="bi bi-eye"></i>
-                        查看详情
-                    </a>
-                </div>
 
-                <div class="history-stats">
-                    <div class="stat-item">
-                        <div class="stat-value">{{ record.evaluation_data | length }}</div>
-                        <div class="stat-label">参评模型</div>
+                    <div class="history-stats">
+                        <div class="stat-item">
+                            <div class="stat-value">{{ record.evaluation_data | length }}</div>
+                            <div class="stat-label">参评模型</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">{{ record.dimensions | length }}</div>
+                            <div class="stat-label">评估维度</div>
+                        </div>
+                        <div class="stat-item">
+                            {% set total_questions = record.extra_info.get('total_questions', '-') %}
+                            <div class="stat-value">{{ total_questions if total_questions != '-' else '未知' }}</div>
+                            <div class="stat-label">评估题目</div>
+                        </div>
                     </div>
-                    <div class="stat-item">
-                        <div class="stat-value">{{ record.dimensions | length }}</div>
-                        <div class="stat-label">评估维度</div>
-                    </div>
-                    <div class="stat-item">
-                        {% set total_questions = record.extra_info.get('total_questions', '-') %}
-                        <div class="stat-value">{{ total_questions if total_questions != '-' else '未知' }}</div>
-                        <div class="stat-label">评估题目</div>
-                    </div>
-                    <!-- <div class="stat-item">
-                        {% if record.extra_info.get('manual_save') %}
-                        <div class="stat-value"><i class="bi bi-hand-thumbs-up" style="color: var(--tech-accent-cyan);"></i></div>
-                        <div class="stat-label">手动保存</div>
+
+                    {% if record.evaluation_data %}
+                    <div style="color: var(--tech-text-secondary); font-size: 0.875rem;">
+                        最高得分模型：
+                        {% set best_model = record.evaluation_data | selectattr('total_score_rank', 'equalto', 1) | first %}
+                        {% if best_model %}
+                            <strong style="color: var(--tech-text-primary);">{{ best_model.name }}</strong>
+                            ({{ "%.2f%%" | format(best_model.avg_score / 5 * 100) }})
                         {% else %}
-                        <div class="stat-value"><i class="bi bi-arrow-clockwise" style="color: var(--tech-accent-purple);"></i></div>
-                        <div class="stat-label">更新保存</div>
+                            <span style="color: var(--tech-text-muted);">无数据</span>
                         {% endif %}
-                    </div> -->
-                </div>
-
-                {% if record.evaluation_data %}
-                <div style="color: var(--tech-text-secondary); font-size: 0.875rem;">
-                    最高得分模型：
-                    {% set best_model = record.evaluation_data | selectattr('total_score_rank', 'equalto', 1) | first %}
-                    {% if best_model %}
-                        <strong style="color: var(--tech-text-primary);">{{ best_model.name }}</strong>
-                        ({{ "%.2f%%" | format(best_model.avg_score / 5 * 100) }})
-                    {% else %}
-                        <span style="color: var(--tech-text-muted);">无数据</span>
+                    </div>
                     {% endif %}
                 </div>
-                {% endif %}
-            </div>
+                {% endfor %}
             {% endfor %}
         </div>
         {% else %}

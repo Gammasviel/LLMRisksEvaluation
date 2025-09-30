@@ -30,6 +30,9 @@ def evaluation_history():
                 flash('日期格式无效，请使用 YYYY-MM-DD 格式', 'warning')
 
         history_records = query.order_by(EvaluationHistory.timestamp.desc()).all()
+
+        for record in history_records:
+            record.date_for_grouping = record.timestamp.date()
         
         return render_template('public/evaluation_history.html', 
                              history_records=history_records,
