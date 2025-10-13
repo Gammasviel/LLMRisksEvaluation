@@ -7,7 +7,6 @@
     <div class="card mb-4">
         <div class="card-body">
             <h5 class="card-title">筛选条件</h5>
-            <!-- 表单现在通过JS提交，更灵活 -->
             <form id="filter-form" method="GET" class="row g-3">
                 <div class="col-md-4">
                     <label for="level1-select" class="form-label">一级维度</label>
@@ -47,7 +46,6 @@
                             <th>模型名称</th>
                             <th>平均得分</th>
                             <th>百分比得分</th>
-                            <!-- 【修改点】列名已更改 -->
                             <th>响应率</th>
                         </tr>
                     </thead>
@@ -58,7 +56,6 @@
                             <td>{{ item.model_name }}</td>
                             <td>{{ "%.2f" | format(item.avg_score) if item.avg_score is not none else 'N/A' }}</td>
                             <td>{{ "%.1f" | format(item.avg_score / item.avg_total * 100) if item.avg_total and item.avg_score is not none else 'N/A' }}%</td>
-                            <!-- 【修改点】显示响应率 -->
                             <td>{{ "%.2f" | format(item.response_rate) if item.response_rate is not none else 'N/A' }}%</td>
                         </tr>
                         {% else %}

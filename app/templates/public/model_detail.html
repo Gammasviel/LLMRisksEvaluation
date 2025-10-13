@@ -1,26 +1,20 @@
-<!-- templates/model_detail.html -->
 <!DOCTYPE html>
 <html lang="zh-CN" class="light-theme">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ llm.name }} - 模型详情分析</title>
-    
-    <!-- 字体 -->
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
-    <!-- 图标 -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     
-    <!-- 科技风格CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/tech-style.css') }}">
-    <!-- 新增：浅色主题CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/light-theme.css') }}">
     
     <style>
-        /* 页面特定样式 */
         .model-hero {
             background: var(--tech-bg-card);
             border: 1px solid var(--tech-border);
@@ -264,8 +258,6 @@
                     }
                 }
             </style>    
-    <!-- 新增：主题切换脚本 -->
-    <!-- <script src="{{ url_for('static', filename='js/theme-switcher.js') }}"></script> -->
 </head>
 <body>
     <header class="tech-header">
@@ -290,17 +282,14 @@
                     <div style="flex: 1;">
                         <h1 class="model-name">{{ llm.name }}</h1>
                         <div class="rank-display">
-                            <!-- <span class="pulse-dot"></span> -->
                             综合排名 #{{ model_rank }}
                         </div>
                     </div>
                 </div>
                 
-                <!-- 模型信息网格 -->
                 <div class="info-grid" style="margin-top: 3rem;">
                     <div class="info-card">
                         <div class="info-label">
-                            <!-- <i class="bi bi-speedometer2"></i> -->
                             综合得分
                         </div>
                         <div class="info-value" style="color: #000000;">
@@ -310,46 +299,26 @@
                     </div>
                     <div class="info-card">
                         <div class="info-label">
-                            <!-- <i class="bi bi-chat-dots"></i> -->
                             响应率
                         </div>
                         <div class="info-value" style="color: #000000;">
                             {{ "%.1f"|format(radar_data['values'][0]) }}%
                         </div>
                     </div>
-                    <!-- <div class="info-card">
-                        <div class="info-label"> -->
-                            <!-- <i class="bi bi-shield-check"></i> -->
-                            <!-- 安全等级 -->
-                        <!-- </div>
-                        <div class="info-value" style="color: #000000;">
-                            {% set avg_score = (radar_data['values'][1:] | sum) / (radar_data['values'][1:] | length) %}
-                            {% if avg_score > 3.5 %}
-                                高度安全
-                            {% elif avg_score > 2.5 %}
-                                中等安全
-                            {% else %}
-                                需要改进
-                            {% endif %}
-                        </div>
-                    </div> -->
                 </div>
             </div>
         </div>
     </header>
 
     <div class="tech-container">
-        <!-- 模型描述 -->
         {% if llm.desc or llm.comment %}
         <div class="tech-card">
             <h3 class="tech-card-title">
-                <!-- <i class="bi bi-info-circle neon-glow" style="color: var(--tech-accent-cyan);"></i> -->
                 模型信息
             </h3>
             
             {% if llm.desc %}
             <div class="section-title">
-                <!-- <i class="bi bi-file-text"></i> -->
                 模型描述
             </div>
             <div class="description-card">
@@ -359,7 +328,6 @@
             
             {% if llm.comment %}
             <div class="section-title">
-                <!-- <i class="bi bi-star"></i> -->
                 模型评价
             </div>
             <div class="description-card">
@@ -369,11 +337,9 @@
         </div>
         {% endif %}
 
-        <!-- 图表区域 -->
         <div class="chart-grid">
             <div class="tech-card">
                 <h3 class="tech-card-title">
-                    <!-- <i class="bi bi-speedometer2 neon-glow" style="color: var(--tech-accent-purple);"></i> -->
                     各维度响应率分析
                 </h3>
                 <div id="response-efficiency-chart" class="tech-chart-container"></div>
@@ -381,7 +347,6 @@
             
             <div class="tech-card">
                 <h3 class="tech-card-title">
-                    <!-- <i class="bi bi-pie-chart neon-glow" style="color: var(--tech-accent-pink);"></i> -->
                     各维度得分分析
                 </h3>
                 <div id="pie-chart" class="tech-chart-container"></div>
@@ -422,11 +387,6 @@
         {% endif %}
     </div>
 
-    <!-- <footer style="text-align: center; padding: 3rem 0; color: var(--tech-text-muted);">
-        <p>AI模型综合能力评估系统 © 2024</p>
-    </footer> -->
-
-    <!-- ECharts -->
     <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
     
     <script>

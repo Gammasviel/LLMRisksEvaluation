@@ -1,4 +1,3 @@
-<!-- templates/history_detail.html -->
 <!DOCTYPE html>
 <html lang="zh-CN" class="light-theme">
 <head>
@@ -6,17 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>历史评估详情 - {{ history_record.timestamp.strftime('%Y年%m月%d日 %H:%M:%S') }}</title>
     
-    <!-- 字体 -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
-    <!-- 图标 -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     
-    <!-- 科技风格CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/tech-style.css') }}">
-    <!-- 浅色主题CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/light-theme.css') }}">
     
     <style>
@@ -150,7 +145,6 @@
             color: var(--tech-text-muted);
             font-size: 1rem;
         }
-        /* 排序相关样式 */
         .sortable-header {
             cursor: pointer;
             user-select: none;
@@ -182,7 +176,6 @@
             content: '▼';
         }
 
-        /* Tab styles */
         .tabs {
             border-bottom: 1px solid var(--tech-border);
             margin-bottom: 1.5rem;
@@ -254,7 +247,6 @@
     </header>
 
     <div class="tech-container">
-        <!-- Flash 消息 -->
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 {% for category, message in messages %}
@@ -271,7 +263,6 @@
         {% endwith %}
 
         {% if leaderboard %}
-        <!-- 详细数据表 -->
         <div class="tech-card">
             <h3 class="tech-card-title">
                 模型评估详细数据
@@ -343,7 +334,6 @@
             </div>
         </div>
 
-        <!-- 图表区域 -->
         <div class="tech-card">
             <h3 class="tech-card-title">
                 模型综合性能分析

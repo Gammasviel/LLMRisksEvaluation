@@ -9,10 +9,6 @@
             <div class="row mb-3">
                 <div class="col-md-4">
                     {{ form.level1.label(class="form-label") }}
-                    <!-- 
-                        解决方案: 在 select 元素上添加一个 data-url 属性来存储由 url_for 生成的 URL。
-                        我们不需要占位符，因为这个 URL 是固定的。
-                    -->
                     {{ form.level1(
                         class="form-select", 
                         **{'data-url': url_for('dimensions.get_dimensions')}
@@ -28,7 +24,6 @@
                 </div>
             </div>
             
-            <!-- 其余的表单元素保持不变 -->
             <div class="mb-3">
                 {{ form.question_type.label(class="form-label") }}
                 {{ form.question_type(class="form-select") }}

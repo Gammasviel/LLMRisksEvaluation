@@ -1,4 +1,3 @@
-<!-- .\templates\update_questions.html -->
 {% extends "dev/base.html" %}
 
 {% block content %}
@@ -10,10 +9,6 @@
     
     <form method="POST" id="bulk-action-form">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-        <!-- 
-            解决方案: 在表格上添加一个 data-* 属性来存储 URL 模板。
-            我们用一个占位符 (如 0) 来生成模板，稍后用 JS 替换它。
-        -->
         <div class="card" 
              data-status-url-template="{{ url_for('questions.get_question_status', question_id=0) }}">
             <div class="card-header d-flex justify-content-between align-items-center">
@@ -29,7 +24,6 @@
             </div>
             <div class="table-responsive">
                 <table class="table table-striped table-hover mb-0">
-                    <!-- 表头部分保持不变 -->
                     <thead>
                         <tr>
                             <th class="text-center" style="width: 5%;"><input class="form-check-input" type="checkbox" id="select-all"></th>

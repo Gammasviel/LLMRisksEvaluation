@@ -1,4 +1,3 @@
-<!-- templates/public_leaderboard.html -->
 <!DOCTYPE html>
 <html lang="zh-CN" class="light-theme">
 <head>
@@ -6,21 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI模型综合能力评估系统</title>
     
-    <!-- 字体 -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
-    <!-- 图标 -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     
-    <!-- 科技风格CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/tech-style.css') }}">
-    <!-- 新增：浅色主题CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/light-theme.css') }}">
     
     <style>
-        /* 页面特定样式 */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -125,7 +119,7 @@
             position: fixed;
             bottom: 5.5rem;
             right: 2rem;
-            z-index: 999; /* 降低z-index，让主题切换按钮在上方 */
+            z-index: 999;
         }
         
         .quadrant-legend {
@@ -165,7 +159,6 @@
             font-size: 0.75rem;
         }
         
-        /* 优化row和col布局 */
         .row {
             display: flex;
             flex-wrap: wrap;
@@ -184,7 +177,6 @@
             padding: 0.75rem;
         }
         
-        /* 排序相关样式 */
         .sortable-header {
             cursor: pointer;
             user-select: none;
@@ -216,7 +208,6 @@
             content: '▼';
         }
         
-        /* 导航链接样式 */
         .nav-link {
             display: inline-flex;
             align-items: center;
@@ -236,7 +227,6 @@
             box-shadow: 0 8px 25px rgba(65, 237, 237, 0.3);
         }
         
-        /* Flash消息样式 */
         .flash-danger {
             background: rgba(239, 68, 68, 0.1);
             border-color: rgba(239, 68, 68, 0.3);
@@ -247,7 +237,6 @@
             border-color: rgba(16, 185, 129, 0.3);
         }
 
-        /* --- 新增Tab样式 --- */
         .tabs {
             border-bottom: 1px solid var(--tech-border);
             margin-bottom: 1.5rem;
@@ -298,7 +287,6 @@
             from { opacity: 0; }
             to { opacity: 1; }
         }
-        /* --- 结束Tab样式 --- */
     </style>
     
 </head>
@@ -310,7 +298,6 @@
     </header>
 
     <div class="tech-container">
-        <!-- Flash 消息 -->
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 {% for category, message in messages %}
@@ -327,7 +314,6 @@
         {% endwith %}
 
         {% if leaderboard %}
-        <!-- 详细数据表 -->
         <div class="tech-card">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
                 <h3 class="tech-card-title" style="margin: 0;">
@@ -413,7 +399,6 @@
             </div>
         </div>
 
-        <!-- 图表区域 -->
         <div class="tech-card">
             <h3 class="tech-card-title">
                 模型综合性能分析
@@ -481,7 +466,6 @@
             <div id="question-type-bar-chart" class="tech-chart-container"></div>
         </div>
         
-        <!-- --- 新增开始: Model-specific analysis tabs --- -->
         {% if charts_data %}
         <div class="tech-card">
             <h3 class="tech-card-title">各模型维度详细分析</h3>
@@ -493,7 +477,6 @@
 
             {% for model_name, data in charts_data.items() %}
             <div id="{{ model_name }}" class="tab-content">
-                <!-- 图表区域 - 使用chart-grid布局 -->
                 <div class="chart-grid">
                     <div class="tech-card">
                         <h3 class="tech-card-title">各维度响应率分析</h3>
@@ -506,7 +489,6 @@
                     </div>
                 </div>
                 
-                <!-- Bias Analysis for this model -->
                 {% if data.bias_analysis_data %}
                 <div class="tech-card">
                     <h3 class="tech-card-title">模型价值观与公平性分析 (偏见歧视分析)</h3>
@@ -541,7 +523,6 @@
             {% endfor %}
         </div>
         {% endif %}
-        <!-- --- 新增结束 --- -->
 
         {% endif %}
 

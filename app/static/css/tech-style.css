@@ -392,7 +392,6 @@ body::after {
     }
 }
 
-/* 加载动画 */
 .tech-loader {
     display: inline-block;
     width: 20px;
@@ -407,7 +406,6 @@ body::after {
     to { transform: rotate(360deg); }
 }
 
-/* 移除扫描线效果 */
 .scan-line {
     display: none;
 }
