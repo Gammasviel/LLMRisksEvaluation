@@ -111,6 +111,10 @@ class EvaluationHistory(db.Model):
     # 存储排序和阈值信息
     extra_info = db.Column(JSON, nullable=True)  # 存储如阈值等额外信息
     
+    @property
+    def date_for_grouping(self):
+        return self.timestamp.date()
+
     def __repr__(self):
         return f'<EvaluationHistory {self.timestamp}>'
     

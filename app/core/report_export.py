@@ -87,9 +87,9 @@ def prepare_data_tables(leaderboard_data, dimension_metadata):
     dimension_names_header = ','.join([item['name'] for item in dimension_metadata])
 
     for item in leaderboard_data:
-        model_performance_rows.append(','.join([item['name'], f"{item['avg_score'] / 5 * 100}%", f"{item['response_rate']}%"]))
+        model_performance_rows.append(','.join([item['name'], f"{item['avg_score'] / 5 * 100}%", f"{item['response_rate']}%" ]))
         dimension_scores_rows.append(','.join([item['name'], *[f"{jtem['avg'] / 5 * 100}%" for jtem in item['dim_scores'].values()]]))
-        question_type_rows.append(','.join([item['name'], f"{item['avg_obj_score'] / 5 * 100}%", f"{item['avg_subj_score'] / 5 * 100}%"]))
+        question_type_rows.append(','.join([item['name'], f"{item['avg_obj_score'] / 5 * 100}%", f"{item['avg_subj_score'] / 5 * 100}%" ]))
 
     return {
         "model_performance_rows": '\n'.join(model_performance_rows),
@@ -109,7 +109,7 @@ def generate_json_data(leaderboard_data, dimension_metadata):
             "客观题得分": item['avg_obj_score'] / 5 * 100,
             "主观题得分": item['avg_subj_score'] / 5 * 100,
             "各维度数据": {
-                dimension_id_to_name[dim_id]: {
+                dimension_id_to_name[str(dim_id)]: {
                     "得分": dim_data['avg'] / 5 * 100,
                     "响应率": dim_data['response_rate']
                 }
@@ -146,13 +146,13 @@ def export_report(leaderboard_data: list = None, report_file_name: str = None, t
         leaderboard_data, dimension_metadata = leaderboard_data
     
     if report_file_name is None:
-        report_file_name = f"Report {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}.md"
+        report_file_name = f"Report {datetime.now().strftime('%Y-%m-%d %H-%M-%S')}.md"
 
     report_file_path = report_path / report_file_name
     
     if report_file_path.exists():
         i = 0
-        base_name, file_extension = report_file_name.split('.')
+        base_name, file_extension = report_file_name.rsplit('.', 1)
         while report_file_path.exists():
             i += 1
             report_file_path = report_path / f"{base_name} ({i}).{file_extension}"
@@ -194,3 +194,40 @@ def export_report(leaderboard_data: list = None, report_file_name: str = None, t
         f.write(report_content)
 
     logger.info(f"Report successfully exported to {report_file_path}")
+    return str(report_file_path.resolve())
+
+class ReportExport:
+    @staticmethod
+    def generate_export_file(history_id):
+        from app.models import EvaluationHistory
+        history = EvaluationHistory.query.get(history_id)
+        if not history:
+            raise Exception("EvaluationHistory not found")
+
+        leaderboard_data = history.evaluation_data
+        dimension_metadata = history.dimensions
+        
+        report_file_name = f"Report {history.timestamp.strftime('%Y-%m-%d %H-%M-%S')}.md"
+
+        report_path = export_report(
+            leaderboard_data=[leaderboard_data, dimension_metadata],
+            report_file_name=report_file_name,
+            timestamp=history.timestamp
+        )
+        return report_path
+
+    @staticmethod
+    def generate_current_leaderboard_export():
+        from datetime import datetime
+        leaderboard_data_map = generate_leaderboard_data() # without history_id
+        leaderboard_data = leaderboard_data_map["leaderboard"]
+        dimension_metadata = leaderboard_data_map["l1_dimensions"]
+        
+        report_file_name = f"Leaderboard Report {datetime.now().strftime('%Y-%m-%d %H-%M-%S')}.md"
+
+        report_path = export_report(
+            leaderboard_data=[leaderboard_data, dimension_metadata],
+            report_file_name=report_file_name,
+            timestamp=datetime.now()
+        )
+        return report_path

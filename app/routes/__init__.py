@@ -10,6 +10,7 @@ from app.routes.public.public_leaderboard import public_leaderboard_bp
 from app.routes.public.history import history_bp
 from app.routes.public.model_detail import model_detail_bp
 from app.routes.dev.exports import exports_bp
+from app.routes.public.exports import public_exports_bp
 
 __all__ = [
     'dimensions_bp',
@@ -23,7 +24,8 @@ __all__ = [
     'auth_bp', 
     'history_bp',
     'model_detail_bp',
-    'exports_bp'
+    'exports_bp',
+    'public_exports_bp'
 ]
 
 blueprints = [
@@ -38,5 +40,6 @@ blueprints = [
     auth_bp,
     history_bp,
     model_detail_bp,
-    exports_bp
+    exports_bp,
+    public_exports_bp
 ]

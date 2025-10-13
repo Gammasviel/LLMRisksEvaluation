@@ -5,7 +5,7 @@ from app.extensions import db
 from app.models import Question, Answer, Setting, LLM, Rating
 from app.core.constants import DEFAULT_CRITERIA, QUESTION_TEMPLATE, RATERS, DEFAULT_TOTAL_SCORE
 from app.core.llm import clients
-from celery import Celery, group
+from celery import Celery, group, chord
 from celery.schedules import crontab
 from celery.signals import after_setup_logger, worker_process_init
 from app.core.utils import setup_logging, rate_answer, generate_leaderboard_data
@@ -23,8 +23,8 @@ _flask_app = None
 
 celery.conf.beat_schedule = {
     'update-all-models-every-sunday': {
-        'task': 'tasks.update_all_models_task',
-        'schedule': crontab(hour=0, minute=0, day_of_week='sunday'),
+        'task': 'app.core.tasks.update_all_models_task',
+        'schedule': crontab(hour=0, minute=0, day_of_week='sunday'),  # 每周日 0:00 执行
     },
 }
 
@@ -154,21 +154,65 @@ def update_all_questions_for_model(model_id):
 
 @celery.task
 def update_all_models_task():
+    """定时任务：更新所有模型对所有问题的回答，并在完成后保存历史记录"""
     logger.info("--- [Scheduled Task] Updating all models for all questions ---")
     try:
         all_question_ids = [q.id for q in Question.query.with_entities(Question.id).all()]
         if not all_question_ids:
             logger.warning("[Scheduled Task] No questions found, skipping.")
             return
-        
-        job = group(
-            process_question.s(qid) for qid in all_question_ids
+
+        # 使用 chord 来确保所有任务完成后执行回调
+        callback = save_evaluation_history_task.si()
+        job = chord(
+            (process_question.si(qid) for qid in all_question_ids),
+            callback
         )
         job.apply_async()
-            
-        logger.info(f"[Scheduled Task] Successfully queued updates for {len(all_question_ids)} questions.")
+
+        logger.info(f"[Scheduled Task] Successfully queued updates for {len(all_question_ids)} questions with history save callback.")
     except Exception as e:
         logger.error(f"[Scheduled Task] Failed to queue update tasks: {e}", exc_info=True)
+
+@celery.task
+def save_evaluation_history_task():
+    """保存当前评估数据为历史记录（由定时任务完成后自动调用）"""
+    logger.info("--- [History Save Task] Saving evaluation history snapshot ---")
+    try:
+        from app.models import EvaluationHistory
+
+        # 生成当前排行榜数据
+        current_data = generate_leaderboard_data()
+
+        # 获取题目总数
+        total_questions = Question.query.count()
+
+        # 阈值设置（与手动保存保持一致）
+        QUADRANT_SCORE_THRESHOLD = 3.0
+        QUADRANT_RESPONSE_RATE_THRESHOLD = 50.0
+
+        # 创建历史记录
+        history_record = EvaluationHistory(
+            dimensions=current_data['l1_dimensions'],
+            evaluation_data=current_data['leaderboard'],
+            extra_info={
+                'score_threshold': QUADRANT_SCORE_THRESHOLD,
+                'rate_threshold': QUADRANT_RESPONSE_RATE_THRESHOLD,
+                'total_models': len(current_data['leaderboard']),
+                'total_dimensions': len(current_data['l1_dimensions']),
+                'total_questions': total_questions,
+                'manual_save': False,  # 标记为自动保存
+                'source': 'scheduled_task'  # 标记来源为定时任务
+            }
+        )
+        db.session.add(history_record)
+        db.session.commit()
+
+        logger.info(f"[History Save Task] Successfully saved evaluation history snapshot with {len(current_data['leaderboard'])} models and {total_questions} questions.")
+        return {'success': True, 'models_count': len(current_data['leaderboard']), 'questions_count': total_questions}
+    except Exception as e:
+        logger.error(f"[History Save Task] Failed to save evaluation history: {e}", exc_info=True)
+        return {'success': False, 'error': str(e)}
 
 @celery.task
 def export_charts_task():
