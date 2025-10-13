@@ -1,5 +1,3 @@
-# .\utils.py
-
 import logging
 import sys
 from logging.handlers import TimedRotatingFileHandler
@@ -19,8 +17,6 @@ from app.core.constants import (
 from app.core.llm import clients
 from sqlalchemy.orm import aliased
 
-
-# --- 1. 日志设置工具 (原 module_logger.py) ---
 
 class CustomFormatter(logging.Formatter):
     """A custom formatter to add millisecond precision to timestamps."""
@@ -61,8 +57,6 @@ def setup_logging(
     logging.info("Logging configured successfully. Outputting to console and file.")
 
 
-# --- 2. 加权平均分计算工具 ---
-
 def calculate_weighted_average(
     subj_score_total: float, 
     subj_count: int, 
@@ -74,9 +68,6 @@ def calculate_weighted_average(
     avg_obj = (obj_score_total / obj_count) if obj_count > 0 else 0
     weighted_score = (avg_subj * SUBJECTIVE_QUESTION_WEIGHT) + (avg_obj * OBJECTIVE_QUESTION_WEIGHT)
     return weighted_score
-
-
-# --- 3. 答案评分工具 (原 tasks.py 中的 rate_answer) ---
 
 def rate_answer(answer: Answer, question: Question, criteria: str, total_score: float, rater_ids: list[int]):
     """Rates a given answer using specified raters and criteria."""
@@ -135,9 +126,6 @@ def rate_answer(answer: Answer, question: Question, criteria: str, total_score: 
         comment='\n'.join(rater_comments)
     )
     db.session.add(rating)
-
-
-# --- 4. 公共榜单数据生成工具 ---
 
 def generate_leaderboard_data(
     rater_names: list[str] = [rater for raters in RATERS.values() for rater in raters],
@@ -220,11 +208,8 @@ def generate_leaderboard_data(
         )
         data['response_rate'] = (data['responsive_count'] / data['total_rating_count'] * 100) if data['total_rating_count'] > 0 else 0
         
-        # --- 新增开始 ---
-        # 计算并添加客观题和主观题的简单平均分
         data['avg_obj_score'] = (data['obj_score_total'] / data['obj_count']) if data['obj_count'] > 0 else 0
         data['avg_subj_score'] = (data['subj_score_total'] / data['subj_count']) if data['subj_count'] > 0 else 0
-        # --- 新增结束 ---
 
         for dim_id, dim_data in data['dim_scores'].items():
             dim_data['avg'] = calculate_weighted_average(
@@ -234,8 +219,7 @@ def generate_leaderboard_data(
             dim_data['response_rate'] = (dim_data['responsive_count'] / dim_data['total_rating_count'] * 100) if dim_data['total_rating_count'] > 0 else 0
             
         leaderboard_data.append(data)
-
-    # Add dimension scores to each model instead of ranks
+        
     for model_data in leaderboard_data:
         if 'dim_scores_display' not in model_data:
             model_data['dim_scores_display'] = {}
@@ -246,12 +230,10 @@ def generate_leaderboard_data(
             else:
                 model_data['dim_scores_display'][dim['id']] = '-'
 
-    # Calculate and add total score rank (always based on avg_score)
     leaderboard_data_by_score = sorted(leaderboard_data, key=lambda x: x['avg_score'], reverse=True)
     for i, model_data in enumerate(leaderboard_data_by_score):
         model_data['total_score_rank'] = i + 1
 
-    # Apply sorting based on parameters
     reverse_order = sort_order == 'desc'
     
     if sort_by == 'avg_score':
@@ -259,22 +241,17 @@ def generate_leaderboard_data(
     elif sort_by == 'response_rate':
         leaderboard_data.sort(key=lambda x: x['response_rate'], reverse=reverse_order)
     elif sort_by.startswith('dim_'):
-        # Handle dimension sorting (e.g., 'dim_1', 'dim_2', etc.)
         dim_id = int(sort_by.split('_')[1])
         leaderboard_data.sort(key=lambda x: x['dim_scores'].get(dim_id, {}).get('avg', 0), reverse=reverse_order)
     else:
-        # Default to avg_score sorting if invalid sort_by parameter
         leaderboard_data.sort(key=lambda x: x['avg_score'], reverse=reverse_order)
     
-    # --- 新增开始: 添加偏见歧视分析数据 ---
-    # 为每个模型添加偏见歧视分析数据
     bias_dim = Dimension.query.filter_by(name='偏见歧视', level=2).first()
     if bias_dim:
         l3_bias_dims = bias_dim.children
         
         for model_data in leaderboard_data:
             model_id = None
-            # 根据模型名称找到模型ID
             for model in models:
                 if model.name == model_data['name']:
                     model_id = model.id
@@ -283,7 +260,6 @@ def generate_leaderboard_data(
             if model_id:
                 bias_analysis = []
                 for l3_dim in l3_bias_dims:
-                    # 计算当前模型在该三级维度的平均分
                     avg_score_result = db.session.query(
                         db.func.avg(Rating.score)
                     ).join(Answer, Rating.answer_id == Answer.id)\
@@ -293,7 +269,6 @@ def generate_leaderboard_data(
                         Question.dimension_id == l3_dim.id
                      ).scalar()
                     
-                    # 只有在有得分的情况下才添加到列表中
                     if avg_score_result is not None:
                         bias_analysis.append({
                             'name': l3_dim.name,
@@ -304,9 +279,7 @@ def generate_leaderboard_data(
             else:
                 model_data['bias_analysis_data'] = []
     else:
-        # 如果没有找到偏见歧视维度，为所有模型添加空的偏见分析数据
         for model_data in leaderboard_data:
             model_data['bias_analysis_data'] = []
-    # --- 新增结束 ---
 
     return {'leaderboard': leaderboard_data, 'l1_dimensions': l1_dims}

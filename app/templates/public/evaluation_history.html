@@ -332,46 +332,36 @@
         {% endif %}
     </div>
 
-    <!-- <footer style="text-align: center; padding: 3rem 0; color: var(--tech-text-muted);">
-        <p>AI模型综合能力评估系统 © 2024</p>
-    </footer> -->
-
-    <!-- Flatpickr JavaScript -->
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/zh.js"></script>
     
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // 配置中文本地化
             flatpickr.localize(flatpickr.l10ns.zh);
 
             const availableDates = {{ available_dates | tojson }};
 
-            // 初始化日期选择器
             const datePicker = flatpickr("#date-selector", {
                 dateFormat: "Y-m-d",
                 locale: "zh",
-                enable: availableDates, // 仅启用有数据的日期
+                enable: availableDates,
                 allowInput: true,
                 clickOpens: true,
                 onChange: function(selectedDates, dateStr, instance) {
-                    // 选择日期后自动提交表单
                     if (dateStr) {
                         instance.input.form.submit();
                     }
                 }
             });
 
-            // 添加筛选状态提示
             const urlParams = new URLSearchParams(window.location.search);
             const hasFilters = urlParams.has('date') && urlParams.get('date') !== '';
             
             if (hasFilters) {
                 const filterSection = document.querySelector('.filter-section');
-                // 避免重复添加提示
                 if (!filterSection.querySelector('.filter-indicator')) {
                     const indicator = document.createElement('div');
-                    indicator.className = 'filter-indicator'; // 用于识别
+                    indicator.className = 'filter-indicator';
                     indicator.style.cssText = `
                         background: rgba(65, 237, 237, 0.1);
                         border: 1px solid var(--tech-accent-cyan);
@@ -385,7 +375,6 @@
                         gap: 0.5rem;
                     `;
                     indicator.innerHTML = '<i class="bi bi-info-circle"></i>当前已按日期筛选';
-                    // 将提示插入到表单之后
                     document.querySelector('.filter-form').insertAdjacentElement('afterend', indicator);
                 }
             }

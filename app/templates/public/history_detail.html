@@ -404,17 +404,14 @@
             <div id="dimension-bar-chart" class="tech-chart-container"></div>
         </div>
         
-        <!-- --- 新增开始 --- -->
         <div class="tech-card">
             <h3 class="tech-card-title">
                 题型分析：各模型客观题与主观题得分对比
             </h3>
             <div id="question-type-bar-chart" class="tech-chart-container"></div>
         </div>
-        <!-- --- 新增结束 --- -->
         {% endif %}
 
-        <!-- Model-specific analysis tabs -->
         {% if charts_data %}
         <div class="tech-card">
             <h3 class="tech-card-title">各模型维度详细分析</h3>
@@ -426,7 +423,6 @@
 
             {% for model_name, data in charts_data.items() %}
             <div id="{{ model_name }}" class="tab-content">
-                <!-- 图表区域 - 使用chart-grid布局 -->
                 <div class="chart-grid">
                     <div class="tech-card">
                         <h3 class="tech-card-title">各维度响应率分析</h3>
@@ -439,7 +435,6 @@
                     </div>
                 </div>
                 
-                <!-- Bias Analysis for this model -->
                 {% for item in leaderboard %}
                     {% if item.name == model_name and item.bias_analysis_data %}
                     <div class="tech-card">
@@ -479,14 +474,11 @@
 
     </div>
 
-    <!-- ECharts -->
     <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
     
-    <!-- ECharts -->
     <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
     
     <script>
-    // 从后端传递的数据
     window.leaderboardData = {{ leaderboard|tojson|safe }};
     window.dimensions = {{ l1_dimensions|tojson|safe }};
     window.scoreThreshold = {{ score_threshold }};
@@ -548,18 +540,17 @@
             const scoreLimit = scoreThreshold * 20;
 
             if (rate < rateThreshold && score > scoreLimit) {
-                return quadrantColors.prudent; // Top-left
+                return quadrantColors.prudent;
             } else if (rate > rateThreshold && score > scoreLimit) {
-                return quadrantColors.refined; // Top-right
+                return quadrantColors.refined;
             } else if (rate < rateThreshold && score < scoreLimit) {
-                return quadrantColors.lax; // Bottom-left
-            } else { // rate > rateThreshold && score < scoreLimit
-                return quadrantColors.extensive; // Bottom-right
+                return quadrantColors.lax;
+            } else {
+                return quadrantColors.extensive;
             }
         }
 
         const initCharts = () => {
-            // 1. 综合性能柱状图
             const overallChartDom = document.getElementById('overall-bar-chart');
             if (overallChartDom) {
                 const chart = echarts.init(overallChartDom, window.techTheme);
@@ -580,7 +571,6 @@
                 window.charts.overallChart = chart;
             }
 
-            // 2. 四象限图
             const quadrantChartDom = document.getElementById('quadrant-chart');
             if (quadrantChartDom) {
                 const chart = echarts.init(quadrantChartDom, window.techTheme);
@@ -648,7 +638,6 @@
                 window.charts.quadrantChart = chart;
             }
 
-            // 3. 维度对比图 (restoring original logic)
             const dimensionChartDom = document.getElementById('dimension-bar-chart');
             if (dimensionChartDom && dimensions && dimensions.length > 0) {
                 const chart = echarts.init(dimensionChartDom, window.techTheme);
@@ -675,7 +664,6 @@
                 window.charts.dimensionChart = chart;
             }
 
-            // 4. 客观题与主观题得分对比图 (Horizontal)
             const questionTypeChartDom = document.getElementById('question-type-bar-chart');
             if (questionTypeChartDom) {
                 const chart = echarts.init(questionTypeChartDom, window.techTheme);
@@ -794,13 +782,12 @@
             if(dom) {
                 const chart = echarts.init(dom, techTheme);
                 
-                // Prepare polar chart data for average scores  
                 const scoreData = modelChartData.avg_scores_by_dimension.datasets[0].data.map((value, index) => {
-                    const percentageValue = (value / 5 * 100); // 将0-5分转换为百分制
+                    const percentageValue = (value / 5 * 100);
                     return {
                         name: modelChartData.avg_scores_by_dimension.labels[index],
-                        value: percentageValue, // 存储百分比值
-                        originalScore: value, // 保存原始分数
+                        value: percentageValue,
+                        originalScore: value,
                         itemStyle: {
                             color: techTheme.color[index % techTheme.color.length]
                         }
@@ -835,14 +822,13 @@
                     },
                     angleAxis: {
                         type: 'value',
-                        max: 360,  // 最大角度为360度
+                        max: 360,
                         startAngle: 90,
                         clockwise: true,
                         axisLabel: {
-                            show: true,  // 显示角度刻度标签
+                            show: true,
                             formatter: function(value) {
                                 const percentage = (value * 100 / 270);
-                                // 只显示不超过100%的刻度，270度处显示100%
                                 return percentage <= 100 ? percentage.toFixed(0) + '%' : '';
                             },
                             fontSize: 10,
@@ -867,26 +853,25 @@
                         coordinateSystem: 'polar',
                         data: scoreData.map(item => ({
                             ...item,
-                            value: item.value * 270 / 100  // 将百分制映射到270度
+                            value: item.value * 270 / 100
                         })),
                         barWidth: '60%',
                         roundCap: true,
                         label: {
                             show: true,
-                            position: 'start',  // 标签位置在起始点
-                            distance: 15,       // 标签距离
+                            position: 'start',
+                            distance: 15,
                             formatter: function(params) {
-                                // 使用原始分数数据进行显示（维度得分分析）
                                 return `${params.data.name} ${(params.data.originalScore / 5 * 100).toFixed(2)}%`;
                             },
                             fontSize: 11,
                             fontWeight: 'bold',
-                            color: '#000000',   // 强制设置为黑色
-                            align: 'right'      // 右对齐
+                            color: '#000000',
+                            align: 'right'
                         },
                         emphasis: {
                             label: {
-                                color: '#000000'    // 悬停时也保持黑色
+                                color: '#000000'
                             },
                             itemStyle: {
                                 shadowBlur: 10,
@@ -907,24 +892,20 @@
         }, 10);
     }
     
-    // 表格排序功能
     function sortTable(column) {
         const currentSortBy = window.currentSortBy;
         const currentSortOrder = window.currentSortOrder;
         
-        let newSortOrder = 'desc'; // 默认倒序
+        let newSortOrder = 'desc';
         
-        // 如果点击的是当前排序列，则切换排序顺序
         if (currentSortBy === column) {
             newSortOrder = currentSortOrder === 'desc' ? 'asc' : 'desc';
         }
         
-        // 构建新的URL
         const url = new URL(window.location);
         url.searchParams.set('sort_by', column);
         url.searchParams.set('sort_order', newSortOrder);
         
-        // 跳转到新URL
         window.location.href = url.toString();
     }
     </script>

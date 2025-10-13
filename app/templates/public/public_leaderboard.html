@@ -547,7 +547,6 @@
 
     </div>
 
-    <!-- 更新按钮 -->
     <div class="update-button">
         <form method="POST" action="{{ url_for('public_leaderboard.update_all_models') }}" onsubmit="return confirm('确定要重新评估所有模型吗？这将是一个耗时的操作。');">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
@@ -557,11 +556,9 @@
         </form>
     </div>
 
-    <!-- ECharts -->
     <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
     
     <script>
-    // 从后端传递的数据
     window.leaderboardData = {{ leaderboard|tojson|safe }};
     window.dimensions = {{ l1_dimensions|tojson|safe }};
     window.scoreThreshold = {{ score_threshold }};
@@ -612,10 +609,10 @@
         window.techTheme = techTheme;
 
         const quadrantColors = {
-            prudent: '#58dedf',    // 稳健型
-            refined: '#7e8acc',    // 精细化
-            extensive: '#90afeb',  // 粗放型
-            lax: '#6b93ec'         // 松懈型
+            prudent: '#58dedf',
+            refined: '#7e8acc',
+            extensive: '#90afeb',
+            lax: '#6b93ec'
         };
 
         function getQuadrantColor(item, rateThreshold, scoreThreshold) {
@@ -624,13 +621,13 @@
             const scoreLimit = scoreThreshold * 20;
 
             if (rate < rateThreshold && score > scoreLimit) {
-                return quadrantColors.prudent; // Top-left
+                return quadrantColors.prudent;
             } else if (rate > rateThreshold && score > scoreLimit) {
-                return quadrantColors.refined; // Top-right
+                return quadrantColors.refined;
             } else if (rate < rateThreshold && score < scoreLimit) {
-                return quadrantColors.lax; // Bottom-left
-            } else { // rate > rateThreshold && score < scoreLimit
-                return quadrantColors.extensive; // Bottom-right
+                return quadrantColors.lax;
+            } else {
+                return quadrantColors.extensive;
             }
         }
 
@@ -641,7 +638,6 @@
                 }
             };
 
-            // 1. 综合性能柱状图
             const overallChartDom = document.getElementById('overall-bar-chart');
             if (overallChartDom) {
                 if (charts.overallChart) charts.overallChart.dispose();
@@ -682,7 +678,6 @@
                 });
             }
 
-            // 2. 四象限图
             const quadrantChartDom = document.getElementById('quadrant-chart');
             if (quadrantChartDom) {
                 if (charts.quadrantChart) charts.quadrantChart.dispose();
@@ -764,7 +759,6 @@
                 });
             }
 
-            // 3. 维度对比图
             const dimensionChartDom = document.getElementById('dimension-bar-chart');
             if (dimensionChartDom && dimensions && dimensions.length > 0) {
                 if (charts.dimensionChart) charts.dimensionChart.dispose();
@@ -790,7 +784,6 @@
                 charts.dimensionChart.setOption(dimensionOption);
             }
 
-            // 4. 客观题与主观题得分对比图
             const questionTypeChartDom = document.getElementById('question-type-bar-chart');
             if (questionTypeChartDom) {
                 if (charts.questionTypeChart) charts.questionTypeChart.dispose();
@@ -844,7 +837,6 @@
         const techTheme = window.techTheme;
         let charts = window.charts;
 
-        // 响应率雷达图
         const responseRateChartName = `responseRate_${modelName}`;
         if (!charts[responseRateChartName]) {
             const dom = document.getElementById(`response-rate-chart-${modelName}`);
@@ -883,7 +875,6 @@
             }
         }
 
-        // 得分分析图
         const avgScoreChartName = `avgScore_${modelName}`;
         if (!charts[avgScoreChartName]) {
             const dom = document.getElementById(`avg-score-chart-${modelName}`);

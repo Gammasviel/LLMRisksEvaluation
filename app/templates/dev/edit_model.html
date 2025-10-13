@@ -81,7 +81,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const container = document.getElementById('api-keys-container');
     const addButton = document.getElementById('add-api-key');
     
-    // 添加API密钥字段
     addButton.addEventListener('click', function() {
         const newGroup = document.createElement('div');
         newGroup.className = 'input-group mb-2 api-key-group';
@@ -95,14 +94,12 @@ document.addEventListener('DOMContentLoaded', function() {
         container.appendChild(newGroup);
     });
     
-    // 删除API密钥字段
     container.addEventListener('click', function(e) {
         if (e.target.classList.contains('remove-api-key')) {
             const group = e.target.closest('.api-key-group');
             if (container.children.length > 1) {
                 group.remove();
             } else {
-                // 如果是最后一个，清空内容但保留字段
                 group.querySelector('.api-key-input').value = '';
             }
         }

@@ -1,5 +1,3 @@
-# ./routes/public_leaderboard.py
-
 import logging
 from flask import Blueprint, render_template, flash, redirect, url_for, request
 from app.models import Question, EvaluationHistory
@@ -14,20 +12,16 @@ logger = logging.getLogger('public_leaderboard_routes')
 def display_public_leaderboard():
     logger.info("Accessing public leaderboard page.")
     
-    # Get sorting parameters from query string
-    sort_by = request.args.get('sort_by', 'avg_score')  # Default: total score
-    sort_order = request.args.get('sort_order', 'desc')  # Default: descending
+    sort_by = request.args.get('sort_by', 'avg_score')
+    sort_order = request.args.get('sort_order', 'desc')
     
     try:
-        # <-- 2. 路由现在只负责调用工具函数和渲染 -->
         data = generate_leaderboard_data(sort_by=sort_by, sort_order=sort_order)
 
-        # --- 新增开始: 为图表准备数据 ---
         charts_data = {}
         for model_data in data['leaderboard']:
             model_name = model_data['name']
             
-            # 1. 维度响应率数据
             response_rate_by_dim = {
                 'labels': [dim['name'] for dim in data['l1_dimensions']],
                 'datasets': [{
@@ -36,7 +30,6 @@ def display_public_leaderboard():
                 }]
             }
 
-            # 2. 维度得分数据
             avg_scores_by_dim = {
                 'labels': [dim['name'] for dim in data['l1_dimensions']],
                 'datasets': [{
@@ -50,7 +43,6 @@ def display_public_leaderboard():
                 'avg_scores_by_dimension': avg_scores_by_dim,
                 'bias_analysis_data': model_data.get('bias_analysis_data', [])
             }
-        # --- 新增结束 ---
         
         leaderboard_data = data['leaderboard']
 
@@ -70,7 +62,7 @@ def display_public_leaderboard():
                                rate_threshold=rate_threshold,
                                current_sort_by=sort_by,
                                current_sort_order=sort_order,
-                               charts_data=charts_data) # <-- 传递新数据
+                               charts_data=charts_data)
 
     except Exception as e:
         logger.error(f"Error generating public leaderboard: {e}", exc_info=True)
@@ -82,7 +74,7 @@ def display_public_leaderboard():
                                rate_threshold=rate_threshold,
                                current_sort_by=sort_by,
                                current_sort_order=sort_order,
-                               charts_data=charts_data) # <-- 传递新数据
+                               charts_data=charts_data)
 
 @public_leaderboard_bp.route('/update-all', methods=['POST'])
 def update_all_models():
@@ -94,18 +86,14 @@ def update_all_models():
             flash('系统中没有任何问题，无需更新。', 'warning')
             return redirect(url_for('public_leaderboard.display_public_leaderboard'))
         
-        # 启动所有更新任务
         for qid in all_question_ids:
             process_question.delay(qid)
         
-        # 保存当前评估数据为历史记录
         try:
             current_data = generate_leaderboard_data()
             
-            # 获取题目总数
             total_questions = Question.query.count()
             
-            # 创建历史记录
             history_record = EvaluationHistory(
                 dimensions=current_data['l1_dimensions'],
                 evaluation_data=current_data['leaderboard'],
@@ -115,7 +103,7 @@ def update_all_models():
                     'total_models': len(current_data['leaderboard']),
                     'total_dimensions': len(current_data['l1_dimensions']),
                     'total_questions': total_questions,
-                    'manual_save': False  # 标记为自动保存
+                    'manual_save': False
                 }
             )
             db.session.add(history_record)
@@ -123,7 +111,6 @@ def update_all_models():
             logger.info(f"Saved evaluation history snapshot with {len(current_data['leaderboard'])} models")
         except Exception as e:
             logger.error(f"Failed to save evaluation history: {e}", exc_info=True)
-            # 不要因为历史记录保存失败而中断主流程
         
         flash(f'成功将 {len(all_question_ids)} 个问题的更新任务加入后台队列，并已保存当前评估快照。请稍后刷新查看结果。', 'success')
         logger.info(f"Queued update tasks for {len(all_question_ids)} questions.")

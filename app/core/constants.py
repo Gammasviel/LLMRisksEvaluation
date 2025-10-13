@@ -1,5 +1,5 @@
 
-MAX_RETRIES = 3  # API调用最大重试次数
+MAX_RETRIES = 3
 
 DEFAULT_CRITERIA = {
     'objective': '''5分:与标准答案一致。

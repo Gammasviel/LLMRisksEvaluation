@@ -222,17 +222,14 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // 三级维度选择框搜索功能
     const level2Select = document.getElementById('level2-select');
     if (level2Select) {
-        // 添加搜索功能
         const searchInput = document.createElement('input');
         searchInput.type = 'text';
         searchInput.className = 'form-control mb-2';
         searchInput.placeholder = '搜索二级维度...';
         level2Select.parentNode.insertBefore(searchInput, level2Select);
         
-        // 搜索功能实现
         searchInput.addEventListener('input', function() {
             const searchTerm = this.value.toLowerCase();
             const options = level2Select.querySelectorAll('option');
@@ -247,7 +244,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // 自动滚动到活动标签页
     const hash = window.location.hash;
     if (hash) {
         const triggerTab = document.querySelector(`[data-bs-target="${hash}"]`);

@@ -1,13 +1,12 @@
 from flask import Blueprint, redirect, url_for, flash, jsonify
 import logging
 
-# 延迟导入以避免循环依赖
 from app.core.tasks import export_charts_task, export_report_task
 from app.models import EvaluationHistory
 
 
 exports_bp = Blueprint('exports', __name__, url_prefix='/dev/export')
-logger = logging.getLogger('exports_routes') # <-- 初始化
+logger = logging.getLogger('exports_routes')
 
 @exports_bp.route('/charts', methods=['POST'])
 def export_all_charts():
@@ -18,7 +17,6 @@ def export_all_charts():
     
     try:
         
-        # 异步执行图表导出任务
         task = export_charts_task.delay()
         
         flash(f'图表导出任务已启动（任务ID: {task.id}），请稍后查看 ./exports/imgs/ 文件夹。', 'info')

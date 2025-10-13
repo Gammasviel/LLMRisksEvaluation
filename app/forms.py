@@ -21,14 +21,13 @@ class QuestionForm(FlaskForm):
     answer = TextAreaField('问题答案（仅客观题）')
     submit = SubmitField('添加题目')
 
-# forms.py
 class SettingForm(FlaskForm):
     question_type = SelectField('题目类型', choices=[
         ('subjective', '主观题'),
         ('objective', '客观题')
     ], validators=[DataRequired()])
     criteria = TextAreaField('评分标准', validators=[DataRequired()])
-    total_score = FloatField('总分值', validators=[  # 新增字段
+    total_score = FloatField('总分值', validators=[
         DataRequired(),
         NumberRange(min=1, max=100, message="总分值必须在1到100之间")
     ])
@@ -47,13 +46,10 @@ class LLMForm(FlaskForm):
         StringField('API密钥', validators=[DataRequired()]),
         min_entries=1
     )
-    # --- 新增字段 ---
     desc = TextAreaField('模型描述', validators=[Optional()])
-    # Use FileField for the icon upload
     icon = FileField('模型图标 (可选)', validators=[
         Optional(),
         FileAllowed(['jpg', 'png', 'gif', 'svg'], '仅允许图片文件!')
     ])
     comment = TextAreaField('模型评价', validators=[Optional()])
-    # --- 结束 ---
     submit = SubmitField('保存模型')

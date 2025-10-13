@@ -1,40 +1,30 @@
-/* static/css/tech-style.css */
-
-/* 科技风格主题定义 */
 :root {
-    /* 深色科技主题色彩 */
     --tech-bg-primary: #0a0e27;
     --tech-bg-secondary: #151935;
     --tech-bg-card: #1a1f3a;
     --tech-bg-hover: #242943;
     
-    /* 霓虹色彩系统 - 调整为更协调的配色 */
     --tech-accent-cyan: #00d9ff;
     --tech-accent-purple: #7c3aed;
     --tech-accent-pink: #ec4899;
     --tech-accent-green: #10b981;
     --tech-accent-yellow: #f59e0b;
     
-    /* 文字色彩 */
     --tech-text-primary: #000000;
     --tech-text-secondary: #000000;
     --tech-text-muted: #000000;
     
-    /* 边框和分割线 */
     --tech-border: rgba(148, 163, 184, 0.1);
     --tech-border-light: rgba(148, 163, 184, 0.2);
     
-    /* 优化后的渐变色 - 使用更协调的颜色组合 */
     --tech-gradient-1: linear-gradient(135deg, #00d9ff 0%, #0891b2 100%);
     --tech-gradient-2: linear-gradient(135deg, #7c3aed 0%, #6366f1 100%);
     --tech-gradient-3: linear-gradient(135deg, #ec4899 0%, #f43f5e 100%);
     --tech-gradient-4: linear-gradient(135deg, #10b981 0%, #059669 100%);
     
-    /* 动画时长 */
     --tech-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* 全局样式重置 */
 * {
     box-sizing: border-box;
 }
@@ -50,7 +40,6 @@ body {
     overflow-x: hidden;
 }
 
-/* 动态背景效果 */
 body::before {
     content: '';
     position: fixed;
@@ -72,7 +61,6 @@ body::before {
     66% { transform: translate(20px, -10px) rotate(240deg); }
 }
 
-/* 网格背景 */
 body::after {
     content: '';
     position: fixed;
@@ -87,7 +75,6 @@ body::after {
     z-index: -1;
 }
 
-/* 霓虹发光效果 - 降低亮度 */
 .neon-glow {
     filter: drop-shadow(0 0 10px currentColor);
 }
@@ -99,7 +86,6 @@ body::after {
         0 0 20px rgba(0, 217, 255, 0.2);
 }
 
-/* 头部样式 */
 .tech-header {
     background: linear-gradient(180deg, var(--tech-bg-secondary) 0%, transparent 100%);
     padding: 3rem 0;
@@ -142,14 +128,12 @@ body::after {
     margin-top: 0.5rem;
 }
 
-/* 容器 */
 .tech-container {
     max-width: 1400px;
     margin: 0 auto;
     padding: 0 2rem;
 }
 
-/* 卡片样式 */
 .tech-card {
     background: var(--tech-bg-card);
     border: 1px solid var(--tech-border);
@@ -190,7 +174,6 @@ body::after {
     margin-bottom: 1.5rem;
 }
 
-/* 按钮样式 */
 .tech-btn {
     background: var(--tech-gradient-2);
     color: white;
@@ -227,7 +210,6 @@ body::after {
     box-shadow: 0 10px 30px rgba(124, 58, 237, 0.3);
 }
 
-/* 表格样式 */
 .tech-table {
     width: 100%;
     border-collapse: collapse;
@@ -263,7 +245,6 @@ body::after {
     background: var(--tech-bg-hover);
 }
 
-/* 排名样式 */
 .rank-badge {
     display: inline-flex;
     align-items: center;
@@ -295,11 +276,9 @@ body::after {
 
 .rank-other {
     background: var(--tech-bg-hover);
-    /* border: 2px solid var(--tech-border-light); */
     color: var(--tech-text-secondary);
 }
 
-/* 图表容器 */
 .tech-chart-container {
     width: 100%;
     height: 600px;
@@ -309,7 +288,6 @@ body::after {
     padding: 1rem;
 }
 
-/* 数据标签 */
 .data-label {
     display: inline-flex;
     align-items: center;
@@ -328,7 +306,6 @@ body::after {
     background: var(--tech-accent-cyan);
 }
 
-/* 进度条 */
 .tech-progress {
     width: 100%;
     height: 0.5rem;
@@ -368,7 +345,6 @@ body::after {
     100% { transform: translateX(100%); }
 }
 
-/* 模型详情特定样式 */
 .model-info-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -397,7 +373,6 @@ body::after {
     color: var(--tech-accent-cyan);
 }
 
-/* 响应式设计 */
 @media (max-width: 768px) {
     .tech-header h1 {
         font-size: 2rem;

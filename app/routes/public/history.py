@@ -13,7 +13,6 @@ def evaluation_history():
     """显示历史评估记录"""
     logger.info("Accessing evaluation history page.")
     try:
-        # 获取所有有评估记录的日期，使用 strftime 确保在 SQLite 上正常工作
         available_dates_query = db.session.query(func.distinct(func.strftime('%Y-%m-%d', EvaluationHistory.timestamp))).all()
         available_dates = [d[0] for d in available_dates_query]
 
@@ -61,7 +60,6 @@ def history_detail(history_id):
         else:
             leaderboard_data.sort(key=lambda x: x.get(sort_by, 0), reverse=reverse)
 
-        # Prepare data for charts
         charts_data = {}
         dim_labels = [dim['name'] for dim in history_record.dimensions]
         for model_data in leaderboard_data:
@@ -74,7 +72,6 @@ def history_detail(history_id):
             for dim in history_record.dimensions:
                 dim_id_int = dim['id']
                 dim_id_str = str(dim['id'])
-                # Check both integer and string keys for robustness
                 score_info = dim_scores.get(dim_id_str) or dim_scores.get(dim_id_int) or {}
                 response_rates.append(score_info.get('response_rate', 0))
                 avg_scores.append(score_info.get('avg', 0))
@@ -88,7 +85,6 @@ def history_detail(history_id):
                     'labels': dim_labels,
                     'datasets': [{'label': '平均得分', 'data': avg_scores, 'backgroundColor': 'rgba(153, 102, 255, 0.6)'}]
                 }
-                # NOTE: Bias analysis chart cannot be generated as raw data is not stored in history.
             }
 
         if leaderboard_data:

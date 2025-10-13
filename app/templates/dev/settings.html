@@ -76,7 +76,6 @@
 </div>
 
 <script>
-// 存储数据库中的评分标准（保留换行符）
 const criteriaData = {
     objective: `{{ objective_criteria | replace('\r\n', '\n') | replace('\n', '\\n') | safe }}`,
     subjective: `{{ subjective_criteria | replace('\r\n', '\n') | replace('\n', '\\n') | safe }}`
@@ -87,13 +86,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const criteriaTextarea = document.getElementById('criteria-text');
     const resetBtn = document.getElementById('reset-btn');
     
-    // 初始化表单
     updateCriteria();
     
-    // 监听题目类型变化
     questionTypeSelect.addEventListener('change', updateCriteria);
     
-    // 恢复当前标准按钮
     resetBtn.addEventListener('click', function() {
         if (confirm('确定要恢复当前评分标准吗？所有未保存的修改将丢失。')) {
             updateCriteria();
@@ -103,13 +99,10 @@ document.addEventListener('DOMContentLoaded', function() {
     function updateCriteria() {
         const questionType = questionTypeSelect.value;
         
-        // 获取数据库中的标准并还原换行符
         const dbCriteria = criteriaData[questionType].replace(/\\n/g, '\n');
         
-        // 更新文本区域内容
         criteriaTextarea.value = dbCriteria;
         
-        // 更新占位符提示
         if (questionType === 'objective') {
             criteriaTextarea.placeholder = "请输入客观题评分标准";
         } else {
@@ -118,7 +111,6 @@ document.addEventListener('DOMContentLoaded', function() {
         totalScoreInput.value = data.total;
     }
     
-    // 表单提交前检查是否有修改
     document.getElementById('criteria-form').addEventListener('submit', function(e) {
         const currentType = questionTypeSelect.value;
         const currentValue = criteriaTextarea.value.trim();

@@ -10,9 +10,6 @@ from app.core.tasks import celery as celery_app
 
 logger = logging.getLogger('main_app')
 
-# 2. 创建一个 UploadSet
-# 'icons' 是这个集合的名字，IMAGES 是一个预设的包含常见图片扩展名的元组
-
 def register_blueprints(app):
     for blueprint in blueprints:
         app.register_blueprint(blueprint)
@@ -22,12 +19,9 @@ def initialize():
     logger.info("Flask app creation started.")
     app = Flask(__name__, instance_relative_config=True)
     
-    # Load default config from app/config.py
     app.config.from_object('app.config')
-    # Load instance config from instance/config.py, overriding default settings
     app.config.from_pyfile('config.py', silent=True)
     
-    # logger.info("Configuring uploads.")
     configure_uploads(app, icons)
     
     logger.info("Initializing csrf.")
@@ -36,7 +30,6 @@ def initialize():
     logger.info("Initializing database.")
     db.init_app(app)
     
-    # logger.info("Migrating database.")
     migrate.init_app(app, db)
     
     logger.info("Registering blueprints.")
@@ -57,7 +50,6 @@ def create_app():
     with app.app_context():
         logger.info("Creating all database tables.")
         db.create_all()
-        # import_datas(app)
         
         all_llms = LLM.query.all()
         logger.info(f"Creating LLM clients for {len(all_llms)} models.")

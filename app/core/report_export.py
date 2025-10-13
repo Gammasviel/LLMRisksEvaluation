@@ -122,7 +122,6 @@ def generate_json_data(leaderboard_data, dimension_metadata):
 
 def generate_llm_analysis(data_prompt):
     """Generates analysis text using the LLM."""
-    # Assuming export_rater_id=1 is a constant or configured elsewhere
     analysis_texts = map(lambda prompt: clients.generate_response(prompt.format(data_template=data_prompt), 1), PROMPTS)
     return tuple(analysis_texts)
 
@@ -219,7 +218,7 @@ class ReportExport:
     @staticmethod
     def generate_current_leaderboard_export():
         from datetime import datetime
-        leaderboard_data_map = generate_leaderboard_data() # without history_id
+        leaderboard_data_map = generate_leaderboard_data()
         leaderboard_data = leaderboard_data_map["leaderboard"]
         dimension_metadata = leaderboard_data_map["l1_dimensions"]
         

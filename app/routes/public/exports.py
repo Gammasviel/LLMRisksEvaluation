@@ -10,7 +10,6 @@ def export_report(history_id):
     Export a report for a given history ID.
     This is a synchronous version for direct download.
     """
-    # Basic check if history exists
     if not EvaluationHistory.query.get(history_id):
         return abort(404)
 

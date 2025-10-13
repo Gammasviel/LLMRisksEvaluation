@@ -95,10 +95,8 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const alertContainer = document.getElementById('alert-container');
-    // 从 data-* 属性中获取 URL 模板
     const statusUrlTemplate = document.querySelector('.card').dataset.statusUrlTemplate;
 
-    // 函数：动态创建并显示一个 Bootstrap alert
     function showAlert(message, category = 'info') {
         const wrapper = document.createElement('div');
         wrapper.innerHTML = `
@@ -108,16 +106,13 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
         `;
         alertContainer.append(wrapper);
-        // 5秒后自动消失
         setTimeout(() => {
             wrapper.remove();
         }, 5000);
     }
 
-    // 函数：轮询问题状态
     function pollStatus(questionId, button, statusBadge) {
         const intervalId = setInterval(() => {
-            // 解决方案: 使用模板替换占位符来生成正确的 URL
             const url = statusUrlTemplate.replace('0', questionId);
             
             fetch(url)
@@ -142,13 +137,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 3000);
     }
     
-    // --- 单个问题更新逻辑 ---
     document.querySelectorAll('.update-btn').forEach(button => {
         button.addEventListener('click', function() {
             const questionId = this.getAttribute('data-id');
             const statusBadge = document.getElementById('status-' + questionId);
             
-            // 1. 立即更新UI为处理中状态
             this.disabled = true;
             this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
             if (statusBadge) {
@@ -156,7 +149,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 statusBadge.textContent = '处理中';
             }
             
-            // 2. 发送请求
             fetch("{{ url_for('questions.update_questions') }}", {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRFToken': '{{ csrf_token() }}' },
@@ -164,13 +156,10 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             .then(response => response.json())
             .then(data => {
-                // 3. 处理任务入队的响应
                 if (data.status === 'queued') {
-                    showAlert(data.message, 'info'); // 动态显示成功入队的消息
-                    // 4. 开始轮询最终状态
+                    showAlert(data.message, 'info');
                     pollStatus(questionId, button, statusBadge);
                 } else {
-                    // 如果入队失败
                     showAlert(data.message || `启动问题 ${questionId} 更新失败。`, 'danger');
                     button.disabled = false;
                     button.innerHTML = '更新';
@@ -187,7 +176,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // --- 批量操作逻辑 (保持不变) ---
     const selectAllCheckbox = document.getElementById('select-all');
     const questionCheckboxes = document.querySelectorAll('.question-checkbox');
     const bulkActionForm = document.getElementById('bulk-action-form');

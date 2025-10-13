@@ -1,5 +1,3 @@
-# chart_export.py
-
 import logging
 from playwright.sync_api import sync_playwright
 import matplotlib
@@ -20,7 +18,7 @@ def export_charts_with_playwright(models, leaderboard_data, l1_dims, imgs_dir, t
         browser = p.chromium.launch(
             headless=True,
             args=[
-                '--no-proxy-server',  # 禁用代理服务器
+                '--no-proxy-server',
                 '--disable-background-timer-throttling',
                 '--disable-backgrounding-occluded-windows',
                 '--disable-renderer-backgrounding'
@@ -29,26 +27,21 @@ def export_charts_with_playwright(models, leaderboard_data, l1_dims, imgs_dir, t
         page = browser.new_page()
         page.set_viewport_size({"width": 1200, "height": 800})
         
-        # 设置基础URL
-        base_url = "http://localhost:5000"  # 需要根据实际情况调整
+        base_url = "http://localhost:5000"
         
         try:
-            # 1. 导出公共榜单的综合图表
-            leaderboard_url = f"{base_url}/"  # 使用根路径访问公共榜单
+            leaderboard_url = f"{base_url}/"
             logger.info(f"Accessing public leaderboard at: {leaderboard_url}")
             page.goto(leaderboard_url)
             
-            # 等待页面完全加载，特别是ECharts图表
-            page.wait_for_timeout(5000)  # 增加等待时间到5秒
+            page.wait_for_timeout(5000)
             
-            # 等待所有图表元素出现
             try:
                 page.wait_for_selector('#overall-bar-chart', timeout=10000)
                 logger.info("Overall bar chart element found")
             except Exception as e:
                 logger.warning(f"Overall bar chart element not found: {e}")
             
-            # 导出综合图表
             if export_timestamp:
                 chart_selectors = [
                     ('#overall-bar-chart', f'overall_bar_chart_{timestamp}.png'),
@@ -68,7 +61,6 @@ def export_charts_with_playwright(models, leaderboard_data, l1_dims, imgs_dir, t
                 try:
                     element = page.query_selector(selector)
                     if element:
-                        # 检查元素是否实际包含内容
                         bounding_box = element.bounding_box()
                         if bounding_box and bounding_box['width'] > 0 and bounding_box['height'] > 0:
                             screenshot_path = imgs_dir / filename
@@ -82,16 +74,13 @@ def export_charts_with_playwright(models, leaderboard_data, l1_dims, imgs_dir, t
                 except Exception as e:
                     logger.warning(f"Failed to export chart {filename}: {e}")
             
-            # 2. 导出每个模型的详细图表
             for model in models:
                 model_name = model.name
                 
-                # 访问模型详情页面
                 model_detail_url = f"{base_url}/model/detail/{model_name}"
                 page.goto(model_detail_url)
-                page.wait_for_timeout(3000)  # 等待图表加载
+                page.wait_for_timeout(3000)
                 
-                # 导出模型详情图表
                 if export_timestamp:
                     model_chart_selectors = [
                         ('#response-efficiency-chart', f'{model_name}_response_rate_{timestamp}.png'),
@@ -113,7 +102,6 @@ def export_charts_with_playwright(models, leaderboard_data, l1_dims, imgs_dir, t
                     except Exception as e:
                         logger.warning(f"Failed to export chart {filename}: {e}")
                 
-                # 导出偏见歧视分析表格（如果存在）
                 bias_table = page.query_selector('table.tech-table')
                 if bias_table:
                     try:
@@ -143,10 +131,8 @@ def export_charts_with_matplotlib(models, leaderboard_data, l1_dims, imgs_dir, t
     plt.style.use('default')
     
     try:
-        # 提取榜单数据 - 修复数据结构访问
-        model_data = leaderboard_data  # leaderboard_data已经是模型数据列表
+        model_data = leaderboard_data
         
-        # 1. 导出综合排名条形图
         model_names = [data['name'] for data in model_data]
         avg_scores = [data['avg_score'] for data in model_data]
         
@@ -156,7 +142,6 @@ def export_charts_with_matplotlib(models, leaderboard_data, l1_dims, imgs_dir, t
         plt.title('模型综合排名')
         plt.gca().invert_yaxis()
         
-        # 添加数值标签
         for i, bar in enumerate(bars):
             width = bar.get_width()
             plt.text(width + 0.01, bar.get_y() + bar.get_height()/2, 
@@ -172,14 +157,12 @@ def export_charts_with_matplotlib(models, leaderboard_data, l1_dims, imgs_dir, t
         plt.close()
         exported_count += 1
         
-        # 2. 导出象限图
         subj_scores = [data['avg_subj_score'] for data in model_data]
         obj_scores = [data['avg_obj_score'] for data in model_data]
         
         plt.figure(figsize=(10, 8))
         plt.scatter(subj_scores, obj_scores, s=100, alpha=0.7)
         
-        # 添加模型名称标签
         for i, name in enumerate(model_names):
             plt.annotate(name, (subj_scores[i], obj_scores[i]), 
                         xytext=(5, 5), textcoords='offset points', fontsize=8)
@@ -198,7 +181,6 @@ def export_charts_with_matplotlib(models, leaderboard_data, l1_dims, imgs_dir, t
         plt.close()
         exported_count += 1
         
-        # 3. 导出维度条形图
         if l1_dims:
             fig, ax = plt.subplots(figsize=(14, 8))
             
@@ -230,10 +212,8 @@ def export_charts_with_matplotlib(models, leaderboard_data, l1_dims, imgs_dir, t
             plt.close()
             exported_count += 1
         
-        # 4. 导出题型分布图 (Horizontal Bar Chart)
-        plt.figure(figsize=(10, 8)) # Adjusted figure size for better horizontal display
+        plt.figure(figsize=(10, 8))
         
-        # 计算各模型在主观题和客观题上的平均表现
         subj_data = []
         obj_data = []
         model_labels = []
@@ -253,9 +233,9 @@ def export_charts_with_matplotlib(models, leaderboard_data, l1_dims, imgs_dir, t
         plt.xlabel('平均分数')
         plt.title('主观题 vs 客观题表现对比')
         plt.yticks(y_pos, model_labels)
-        plt.gca().invert_yaxis()  # Invert y-axis to have the first model on top
+        plt.gca().invert_yaxis()
         plt.legend()
-        plt.grid(True, axis='x', alpha=0.3) # Grid lines on x-axis
+        plt.grid(True, axis='x', alpha=0.3)
         plt.tight_layout()
         
         if export_timestamp:
@@ -266,7 +246,6 @@ def export_charts_with_matplotlib(models, leaderboard_data, l1_dims, imgs_dir, t
         plt.close()
         exported_count += 1
         
-        # 5. 为每个模型生成详细图表
         for model in models:
             model_name = model.name
             model_detail_data = next((m for m in model_data if m['name'] == model_name), None)
@@ -274,7 +253,6 @@ def export_charts_with_matplotlib(models, leaderboard_data, l1_dims, imgs_dir, t
             if not model_detail_data:
                 continue
                 
-            # 响应率图表
             plt.figure(figsize=(8, 6))
             responsive_rate = model_detail_data['response_rate']
             non_responsive_rate = 100 - responsive_rate
@@ -296,7 +274,6 @@ def export_charts_with_matplotlib(models, leaderboard_data, l1_dims, imgs_dir, t
             plt.close()
             exported_count += 1
             
-            # 各维度得分饼图
             if model_detail_data['dim_scores']:
                 plt.figure(figsize=(8, 8))
                 
@@ -333,7 +310,6 @@ def export_charts_placeholder(models, imgs_dir, timestamp, export_timestamp=True
     """创建占位符文件"""
     exported_count = 0
     
-    # 为每个模型创建对应的图表文件
     for model in models:
         model_name = model.name
         
@@ -352,11 +328,9 @@ def export_charts_placeholder(models, imgs_dir, timestamp, export_timestamp=True
         
         for chart_filename in charts:
             chart_path = imgs_dir / chart_filename
-            # 创建占位符文件（实际实现中这里会生成真实的图表）
             chart_path.write_text(f'Placeholder for {chart_filename}')
             exported_count += 1
     
-    # 导出综合图表
     if export_timestamp:
         overall_charts = [
             f'overall_bar_chart_{timestamp}.png',
@@ -385,7 +359,6 @@ def export_all_charts(models, leaderboard_data, l1_dims, imgs_dir, timestamp, ex
     exported_count = 0
     
     try:
-        # 首先尝试使用Playwright截取真实网页图表
         try:
             playwright_available = True
             logger.info("Using Playwright for chart export")
@@ -396,9 +369,8 @@ def export_all_charts(models, leaderboard_data, l1_dims, imgs_dir, timestamp, ex
         if playwright_available:
             exported_count = export_charts_with_playwright(models, leaderboard_data, l1_dims, imgs_dir, timestamp, export_timestamp)
         else:
-            # Fallback to matplotlib if Playwright is not available
             try:
-                matplotlib.use('Agg')  # Use non-interactive backend
+                matplotlib.use('Agg')
                 chart_lib_available = True
                 logger.info("Using matplotlib for chart export")
             except ImportError:

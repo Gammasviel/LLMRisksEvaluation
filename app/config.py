@@ -1,6 +1,5 @@
 import os
 
-# 基础配置
 SECRET_KEY = os.environ.get('SECRET_KEY') or 'your-secret-key'
 SQLALCHEMY_DATABASE_URI = 'sqlite:///evaluation.db'
 SQLALCHEMY_TRACK_MODIFICATIONS = False

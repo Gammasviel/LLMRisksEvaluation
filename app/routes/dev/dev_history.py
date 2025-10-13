@@ -1,5 +1,3 @@
-# .\routes\dev_history.py
-
 from flask import Blueprint, render_template, request, flash, redirect, url_for
 import logging
 from app.models import EvaluationHistory, Question
@@ -20,7 +18,6 @@ def dev_history():
     logger.info("Accessing dev history page.")
     
     try:
-        # 获取所有历史记录，按时间倒序
         history_records = EvaluationHistory.query.order_by(EvaluationHistory.timestamp.desc()).all()
         
         return render_template('dev/dev_history.html', history_records=history_records)
@@ -57,10 +54,8 @@ def save_current_data_to_history():
     logger.info("Received request to save current evaluation data to history.")
     
     try:
-        # 获取当前评估数据
         current_data = generate_leaderboard_data()
         
-        # 获取题目总数
         total_questions = Question.query.count()
         
         leaderboard_data = current_data['leaderboard']
@@ -73,7 +68,6 @@ def save_current_data_to_history():
             score_threshold = 0
             rate_threshold = 0
 
-        # 创建历史记录
         history_record = EvaluationHistory(
             dimensions=current_data['l1_dimensions'],
             evaluation_data=leaderboard_data,
@@ -83,7 +77,7 @@ def save_current_data_to_history():
                 'total_models': len(leaderboard_data),
                 'total_dimensions': len(current_data['l1_dimensions']),
                 'total_questions': total_questions,
-                'manual_save': True  # 标记为手动保存
+                'manual_save': True
             }
         )
         

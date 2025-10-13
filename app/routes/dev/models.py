@@ -1,4 +1,3 @@
-# .\routes\models.py
 import os
 from flask import Blueprint, render_template, flash, redirect, url_for, request, current_app
 from app.models import LLM
@@ -38,11 +37,9 @@ def add_model():
             logger.warning("Add model failed: No valid API keys provided.")
             return render_template('dev/edit_model.html', form=form)
         
-        # 4. 使用 Flask-Uploads 保存文件
         icon_filename = None
         if 'icon' in request.files and request.files['icon'].filename != '':
             try:
-                # icons.save() 会处理验证、生成安全唯一的文件名并保存
                 icon_filename = icons.save(request.files['icon'])
             except Exception as e:
                 flash(f'图标上传失败: {e}', 'danger')
@@ -52,7 +49,7 @@ def add_model():
             name=form.name.data, model=form.model.data,
             base_url=form.base_url.data, api_keys=api_keys,
             desc=form.desc.data, 
-            icon=icon_filename,  # 保存由 Flask-Uploads 返回的新文件名
+            icon=icon_filename,
             comment=form.comment.data
         )
         db.session.add(new_llm)
@@ -89,15 +86,11 @@ def edit_model(model_id):
             logger.warning(f"Edit model ID {model_id} failed: No valid API keys provided.")
             return render_template('dev/edit_model.html', form=form, action='编辑', llm=llm, icons=icons)
         
-        # --- START: 修正逻辑 ---
         file_data = form.icon.data
         
-        # 核心修正：检查 file_data 是否是文件对象（通过检查它是否有 filename 属性）
-        # 并且确保文件名不为空，以防止空的上传字段。
         if file_data and hasattr(file_data, 'filename') and file_data.filename:
             logger.info(f"New icon file detected for model ID {model_id}: {file_data.filename}")
             try:
-                # 删除旧图标 (可选，但推荐)
                 if llm.icon:
                     try:
                         os.remove(icons.path(llm.icon))
@@ -105,7 +98,6 @@ def edit_model(model_id):
                     except OSError as e:
                         logger.warning(f"Could not remove old icon {llm.icon}: {e}")
                 
-                # 保存新图标
                 llm.icon = icons.save(file_data)
                 logger.info(f"Successfully saved new icon as: {llm.icon}")
             except Exception as e:
@@ -113,9 +105,7 @@ def edit_model(model_id):
                 flash(f'图标上传失败: {e}', 'danger')
                 return render_template('dev/edit_model.html', form=form, action='编辑', llm=llm, icons=icons)
         else:
-            # 如果没有新文件上传，则不执行任何图标操作，保留旧图标
             logger.info(f"No new icon file provided for model ID {model_id}. Keeping existing icon: {llm.icon}")
-        # --- END: 修正逻辑 ---
 
         llm.name = form.name.data
         llm.model = form.model.data

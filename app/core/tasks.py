@@ -1,5 +1,3 @@
-# .\tasks.py
-
 import logging
 from app.extensions import db
 from app.models import Question, Answer, Setting, LLM, Rating
@@ -18,13 +16,12 @@ logger = logging.getLogger('celery_tasks')
 
 celery = Celery('tasks', broker='redis://localhost:6379/0', backend='redis://localhost:6379/0')
 
-# Global Flask app instance for worker process
 _flask_app = None
 
 celery.conf.beat_schedule = {
     'update-all-models-every-sunday': {
         'task': 'app.core.tasks.update_all_models_task',
-        'schedule': crontab(hour=0, minute=0, day_of_week='sunday'),  # 每周日 0:00 执行
+        'schedule': crontab(hour=0, minute=0, day_of_week='sunday'), 
     },
 }
 
@@ -42,7 +39,6 @@ class ContextTask(celery.Task):
     def __call__(self, *args, **kwargs):
         global _flask_app
         if _flask_app is None:
-            # Fallback if worker init failed
             logger.warning("Flask app not initialized in worker, creating new instance...")
             from app import create_app
             _flask_app = create_app()
@@ -85,7 +81,6 @@ def process_question(question_id):
         logger.warning(f"[Master Task] No models to process for Question ID {question_id} after excluding raters.")
         return
 
-    # from celery import group
     job = group(
         process_single_model.s(llm.id, question.id) for llm in llms_to_process
     )
@@ -124,13 +119,11 @@ def process_single_model(model_id, question_id):
     
     logger.info(f"[Sub-Task] Rating Answer ID: {answer.id} with raters: {[r.name for r in rater_llms]}.")
     
-    # <-- 2. 调用从 utils 导入的函数 -->
     rate_answer(answer, question, criteria, total_score, rater_ids)
     
     db.session.commit()
     logger.info(f"[Sub-Task] Finished processing for Model ID: {model_id}, Question ID: {question_id}.")
 
-# <-- 3. 删除本地的 rate_answer 函数 -->
 
 @celery.task
 def update_all_questions_for_model(model_id):
@@ -144,7 +137,6 @@ def update_all_questions_for_model(model_id):
         logger.warning(f"[Model Update Task] No questions found in the database. Nothing to do for Model ID: {model_id}.")
         return
         
-    # Create a group of tasks to process each question for the given model
     job = group(
         process_single_model.s(model_id, q_id[0]) for q_id in question_ids
     )
@@ -162,7 +154,6 @@ def update_all_models_task():
             logger.warning("[Scheduled Task] No questions found, skipping.")
             return
 
-        # 使用 chord 来确保所有任务完成后执行回调
         callback = save_evaluation_history_task.si()
         job = chord(
             (process_question.si(qid) for qid in all_question_ids),
@@ -181,17 +172,13 @@ def save_evaluation_history_task():
     try:
         from app.models import EvaluationHistory
 
-        # 生成当前排行榜数据
         current_data = generate_leaderboard_data()
 
-        # 获取题目总数
         total_questions = Question.query.count()
 
-        # 阈值设置（与手动保存保持一致）
         QUADRANT_SCORE_THRESHOLD = 3.0
         QUADRANT_RESPONSE_RATE_THRESHOLD = 50.0
 
-        # 创建历史记录
         history_record = EvaluationHistory(
             dimensions=current_data['l1_dimensions'],
             evaluation_data=current_data['leaderboard'],
@@ -201,8 +188,8 @@ def save_evaluation_history_task():
                 'total_models': len(current_data['leaderboard']),
                 'total_dimensions': len(current_data['l1_dimensions']),
                 'total_questions': total_questions,
-                'manual_save': False,  # 标记为自动保存
-                'source': 'scheduled_task'  # 标记来源为定时任务
+                'manual_save': False,
+                'source': 'scheduled_task'
             }
         )
         db.session.add(history_record)
@@ -231,11 +218,9 @@ def export_charts_task():
     logger.info("Chart export task started.")
     
     try:
-        # 创建exports/imgs文件夹
         imgs_dir = Path('./exports/imgs')
         imgs_dir.mkdir(parents=True, exist_ok=True)
         
-        # 获取所有非评分模型
         rater_names = [rater for raters in RATERS.values() for rater in raters]
         models = LLM.query.filter(LLM.name.notin_(rater_names)).all()
         
@@ -243,15 +228,12 @@ def export_charts_task():
             logger.warning('No models found for chart export.')
             return {'success': False, 'message': '没有找到可导出的模型。', 'exported_count': 0}
         
-        # 生成榜单数据
         leaderboard_result = generate_leaderboard_data()
         leaderboard_data = leaderboard_result['leaderboard']
         l1_dims = leaderboard_result['l1_dimensions']
         
-        # 开始导出图表
         timestamp = int(time.time())
         
-        # 调用chart_export模块的导出函数
         exported_count = export_all_charts(models, leaderboard_data, l1_dims, imgs_dir, timestamp)
         
         logger.info(f"Successfully exported {exported_count} charts to ./exports/imgs/")

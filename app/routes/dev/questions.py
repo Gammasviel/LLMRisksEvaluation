@@ -16,7 +16,6 @@ logger = logging.getLogger('question_routes')
 def add_question():
     form = QuestionForm()
     
-    # 动态加载维度的逻辑保持不变
     level1_dims = Dimension.query.filter_by(level=1).order_by(Dimension.name).all()
     form.level1.choices = [(d.id, d.name) for d in level1_dims]
     
@@ -54,20 +53,19 @@ def add_question():
         db.session.commit()
         flash('题目添加成功', 'success')
         logger.info(f"Successfully added question, new ID: {new_question.id}.")
-        return redirect(url_for('questions.update_questions')) # 改为跳转到问题列表页更友好
+        return redirect(url_for('questions.update_questions'))
     
     return render_template('dev/add_question.html', form=form)
 
-# --- 这是被遗漏的函数 ---
 @questions_bp.route('/<int:question_id>')
 @login_required
 @admin_required
 def question_detail(question_id):
-    logger.info(f"Accessed detail page for Question ID: {question_id}.") # <-- 添加日志
+    logger.info(f"Accessed detail page for Question ID: {question_id}.")
     question = Question.query.get_or_404(question_id)
     answers = Answer.query.filter_by(question_id=question_id).options(
         db.joinedload(Answer.llm),
-        db.joinedload(Answer.ratings) # 简化了这里的 joinedload，因为 rater 信息在 comment 中
+        db.joinedload(Answer.ratings)
     ).all()
     
     return render_template('dev/question_detail.html', question=question, answers=answers)
@@ -96,7 +94,6 @@ def update_questions():
             logger.info(f"Queuing single question update task for question ID: {question_id}.")
             process_question.delay(int(question_id))
             
-            # 【解决方案 2.1】不再使用 flash，直接在 JSON 中返回消息
             return jsonify({
                 'status': 'queued', 
                 'question_id': question_id,
@@ -107,11 +104,9 @@ def update_questions():
     questions = Question.query.order_by(Question.id.desc()).all()
     return render_template('dev/update_questions.html', questions=questions)
 
-# 【解决方案 2.2】添加一个新的路由，用于前端轮询问题状态
 @questions_bp.route('/status/<int:question_id>', methods=['GET'])
 def get_question_status(question_id):
     question = Question.query.get_or_404(question_id)
-    # 检查这个问题是否已经有答案了
     if question.answers:
         return jsonify({'status': '已评估'})
     else:

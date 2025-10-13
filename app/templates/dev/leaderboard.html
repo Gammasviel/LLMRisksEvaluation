@@ -24,14 +24,12 @@
                     <label for="level2-select" class="form-label">二级维度</label>
                     <select id="level2-select" class="form-select" name="level2">
                         <option value="">全部</option>
-                        {# 选项将由JS动态填充 #}
                     </select>
                 </div>
                 <div class="col-md-4">
                     <label for="level3-select" class="form-label">三级维度</label>
                     <select id="level3-select" class="form-select" name="level3">
                         <option value="">全部</option>
-                        {# 选项将由JS动态填充 #}
                     </select>
                 </div>
             </form>
@@ -118,7 +116,6 @@ document.addEventListener('DOMContentLoaded', function() {
         form.submit();
     });
 
-    // Initial population on page load
     Promise.resolve()
         .then(() => fetchAndPopulate(level2Select, selectedL1, 2, selectedL2))
         .then(() => fetchAndPopulate(level3Select, selectedL2, 3, selectedL3));

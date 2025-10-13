@@ -15,14 +15,10 @@ def manage_dimensions():
     if request.method == 'GET':
         logger.info("Accessed dimension management page.")
     
-    # ... (rest of the view logic is unchanged)
-    
-    # 处理表单提交
     if request.method == 'POST':
         action = request.form.get('action')
         logger.info(f"Received POST request for dimension action: {action}")
         
-        # 添加维度
         if action == 'add_dimension':
             dim_level = request.form.get('dim_level')
             
@@ -52,14 +48,10 @@ def manage_dimensions():
                     flash(f'三级维度 "{name}" 添加成功', 'success')
                     logger.info(f"Added new level 3 dimension: '{name}' under parent ID {parent_id}.")
         
-        # 删除维度
         elif action == 'delete_dimension':
             dim_id = request.form.get('dim_id')
             dim = Dimension.query.get(dim_id)
             if dim:
-                # ... (deletion check logic is unchanged)
-                
-                # 删除维度
                 logger.warning(f"Attempting to delete dimension '{dim.name}' (ID: {dim.id}).")
                 db.session.delete(dim)
                 flash(f'维度 "{dim.name}" 已删除', 'success')
@@ -68,7 +60,6 @@ def manage_dimensions():
         db.session.commit()
         return redirect(url_for('dimensions.manage_dimensions'))
     
-    # ... (rest of the GET logic is unchanged)
     level1_dims = Dimension.query.filter_by(level=1).all()
     level2_dims = Dimension.query.filter_by(level=2).all()
     level3_dims = Dimension.query.filter_by(level=3).all()
@@ -95,7 +86,6 @@ def get_dimensions():
     parent_id = request.args.get('parent', type=int)
     logger.debug(f"Fetching dimensions for level {level} with parent ID {parent_id}.")
     
-    # ... (rest of the function is unchanged)
     if level == 2:
         dimensions = Dimension.query.filter_by(parent=parent_id, level=2).all()
     elif level == 3:

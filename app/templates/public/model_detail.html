@@ -433,13 +433,11 @@
     document.addEventListener('DOMContentLoaded', function() {
         const radarData = {{ radar_data|tojson }};
         const pieData = {{ bar_data|tojson }};
-        const responseRateData = {{ response_rate_data|tojson }};  // 新增各维度响应率数据
+        const responseRateData = {{ response_rate_data|tojson }};
         
-        // 存储图表实例
         let charts = {};
 
         const initCharts = () => {
-            // 使用主题切换器提供的主题
             
             const techTheme = {
                 color: [
@@ -470,7 +468,6 @@
                 }
             };
 
-            // 1. 各维度响应效能分析图 - 雷达图
             const responseChartDom = document.getElementById('response-efficiency-chart');
             if (responseChartDom) {
                 if (charts.responseChart) {
@@ -528,7 +525,6 @@
                 charts.responseChart.setOption(responseOption);
             }
 
-            // 2. 饼图
             const pieChartDom = document.getElementById('pie-chart');
             if (pieChartDom) {
                 if (charts.pieChart) {
@@ -537,13 +533,12 @@
                 
                 charts.pieChart = echarts.init(pieChartDom, techTheme);
                 
-                // 准备径向进度条数据 - 不需要排除数据（因为原始数据第一个元素不是总得分）
                 const scoreData = pieData.map((item, index) => {
-                    const percentageValue = (item.value / 5 * 100); // 将0-5分转换为百分制
+                    const percentageValue = (item.value / 5 * 100);
                     return {
                         name: item.name,
-                        value: percentageValue, // 存储百分比值
-                        originalScore: item.value, // 保存原始分数
+                        value: percentageValue,
+                        originalScore: item.value,
                         itemStyle: {
                             color: techTheme.color[index % techTheme.color.length]
                         }
@@ -578,14 +573,13 @@
                     },
                     angleAxis: {
                         type: 'value',
-                        max: 360,  // 最大角度为360度
+                        max: 360,
                         startAngle: 90,
                         clockwise: true,
                         axisLabel: {
-                            show: true,  // 显示角度刻度标签
+                            show: true,
                             formatter: function(value) {
                                 const percentage = (value * 100 / 270);
-                                // 只显示不超过100%的刻度，270度处显示100%
                                 return percentage <= 100 ? percentage.toFixed(0) + '%' : '';
                             },
                             fontSize: 10,
@@ -610,22 +604,21 @@
                         coordinateSystem: 'polar',
                         data: scoreData.map(item => ({
                             ...item,
-                            value: item.value * 270 / 100  // 将百分制映射到360度
+                            value: item.value * 270 / 100
                         })),
                         barWidth: '60%',
                         roundCap: true,
                         label: {
                             show: true,
-                            position: 'start',  // 标签位置在起始点
-                            distance: 15,       // 标签距离
+                            position: 'start',
+                            distance: 15,
                             formatter: function(params) {
-                                // 使用原始分数数据进行显示（维度得分分析）
                                 return `${params.data.name} ${(params.data.originalScore / 5 * 100).toFixed(2)}%`;
                             },
                             fontSize: 11,
                             fontWeight: 'bold',
                             color: techTheme.textStyle.color,
-                            align: 'right'      // 右对齐
+                            align: 'right'
                         },
                         emphasis: {
                             itemStyle: {
@@ -640,7 +633,6 @@
                 charts.pieChart.setOption(scoreOption);
             }
 
-            // 响应式
             window.addEventListener('resize', () => {
                 Object.values(charts).forEach(chart => {
                     if (chart) chart.resize();
@@ -648,15 +640,8 @@
             });
         };
 
-        // 初始化图表
         initCharts();
 
-        // 监听主题变化事件，重新初始化图表
-        // window.addEventListener('themeChanged', (e) => {
-        //     setTimeout(() => {
-        //         initCharts();
-        //     }, 100);
-        // });
     });
     </script>
     {% include 'public/back_to_top.html' %}

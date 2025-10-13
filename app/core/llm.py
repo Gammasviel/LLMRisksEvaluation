@@ -1,6 +1,6 @@
 import openai
 import httpx
-import ast  # Import the Abstract Syntax Tree module for safe literal evaluation
+import ast
 from app.core.constants import CONNECTION_ERROR_RETRIES
 import logging
 
@@ -32,37 +32,24 @@ class LLMClient:
         return self.clients[self.index]
 
     def _parse_detailed_error(self, e: openai.APIError) -> str:
-        """
-        Safely parses the detailed error message from an OpenAI APIError.
-        This handles string formats like "Error code: 400 - {'error': ...}".
-        It uses ast.literal_eval for safely parsing Python dicts from strings.
-        """
-        # First, try the modern, preferred way: the .body attribute
         if e.body and isinstance(e.body, dict) and 'error' in e.body:
             return e.body['error'].get('message', str(e))
         
-        # If .body is not available, parse the raw e.message string
         message_str = str(e.message)
         try:
-            # Find the start of the dictionary (the first '{')
             brace_index = message_str.find('{')
             if brace_index != -1:
-                # Extract the dictionary part of the string
                 dict_string = message_str[brace_index:]
-                # Use ast.literal_eval, which is safe and handles single quotes
                 error_data = ast.literal_eval(dict_string)
                 if isinstance(error_data, dict) and 'error' in error_data:
-                     # Use .get() for safe access
                      return error_data.get('error', {}).get('message', message_str)
         except (ValueError, SyntaxError, TypeError, KeyError) as parse_error:
-            # If parsing fails for any reason, log it and return the original message
             logger.warning(f"Could not parse detailed error from message string. Error: {parse_error}. Original: '{message_str}'")
         
-        return message_str # Ultimate fallback
+        return message_str
 
     def generate_response(self, prompt: str) -> str:
         response = None
-        # Requirement 1: Retry APIConnectionError up to CONNECTION_ERROR_RETRIES times
         for i in range(CONNECTION_ERROR_RETRIES):
             try:
                 logger.debug(f"Attempting to generate response for model {self.name}. Try {i+1}/{CONNECTION_ERROR_RETRIES}.")
@@ -70,34 +57,31 @@ class LLMClient:
                     model=self.model,
                     messages=[{'role': 'user', 'content': prompt}]
                 )
-                break  # Success, exit the retry loop
+                break
 
             except openai.APIConnectionError as e:
                 logger.warning(f"APIConnectionError for model {self.name} on try {i+1}. Error: {e}")
                 if i == CONNECTION_ERROR_RETRIES - 1:
                     logger.error(f"Connection finally failed for model {self.name} after {CONNECTION_ERROR_RETRIES} retries.")
                     return "Connection error"
-                # Continue to the next iteration to retry
             
-            # Requirement 2 & 4: Handle fatal (non-retryable) API errors
             except (openai.InternalServerError, openai.BadRequestError) as e:
                 detailed_message = self._parse_detailed_error(e)
                 logger.error(f"Fatal API Error for model {self.name} (BadRequest/InternalServer): {detailed_message}")
-                return f"API Error: {detailed_message}" # Exit immediately, do not retry
+                return f"API Error: {detailed_message}"
             
-            except openai.APIError as e: # Catch any other OpenAI API errors
+            except openai.APIError as e:
                 detailed_message = self._parse_detailed_error(e)
                 logger.error(f"Unhandled API Error for model {self.name}: {detailed_message}")
-                return f"API Error: {detailed_message}" # Exit immediately, do not retry
+                return f"API Error: {detailed_message}"
 
             except Exception as e:
                 logger.critical(f"An unexpected non-API error occurred for model {self.name}: {e}", exc_info=True)
-                return "Unexpected client error" # Exit immediately
+                return "Unexpected client error"
 
         if response is None:
             return "Failed to get response"
 
-        # Requirement 3: Handle unpacking response and fallback to finish_reason
         try:
             if response.choices:
                 message = response.choices[0].message
@@ -120,12 +104,11 @@ class LLMClient:
                 content = "Response parsing failed completely"
             
         return content
-
-# The 'Clients' class below remains unchanged.
+    
 
 class Clients:
     clients: dict[int: LLMClient] = {}
-    _initialized = False  # Add an initialization flag
+    _initialized = False
     
     def __init__(self, models: list[dict] = None):
         if not models is None:
