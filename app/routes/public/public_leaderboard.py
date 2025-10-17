@@ -4,6 +4,7 @@ from app.models import Question, EvaluationHistory
 from app.extensions import db
 
 from app.core.utils import generate_leaderboard_data
+from app.core.tasks import generate_and_save_reports
 
 public_leaderboard_bp = Blueprint('public_leaderboard', __name__)
 logger = logging.getLogger('public_leaderboard_routes')
@@ -108,6 +109,7 @@ def update_all_models():
             )
             db.session.add(history_record)
             db.session.commit()
+            generate_and_save_reports.delay(history_record.id)
             logger.info(f"Saved evaluation history snapshot with {len(current_data['leaderboard'])} models")
         except Exception as e:
             logger.error(f"Failed to save evaluation history: {e}", exc_info=True)

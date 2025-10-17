@@ -6,8 +6,7 @@ from app.core.llm import clients
 from celery import Celery, group, chord
 from celery.schedules import crontab
 from celery.signals import after_setup_logger, worker_process_init
-from app.core.utils import setup_logging, rate_answer, generate_leaderboard_data
-from app.core.chart_export import export_all_charts
+from app.core.utils import setup_logging, rate_answer, generate_leaderboard_data, convert_markdown_to_pdf
 from app.core.report_export import export_report
 import time
 from pathlib import Path
@@ -195,6 +194,8 @@ def save_evaluation_history_task():
         db.session.add(history_record)
         db.session.commit()
 
+        generate_and_save_reports.delay(history_record.id)
+
         logger.info(f"[History Save Task] Successfully saved evaluation history snapshot with {len(current_data['leaderboard'])} models and {total_questions} questions.")
         return {'success': True, 'models_count': len(current_data['leaderboard']), 'questions_count': total_questions}
     except Exception as e:
@@ -271,3 +272,36 @@ def export_report_task(leaderboard_data: list = None, report_file_name: str = No
             'success': False,
             'message': '导出报告时发生错误，请检查日志。'
         }
+
+@celery.task
+def generate_and_save_reports(history_id):
+    """Generates and saves markdown and PDF reports for a given history record."""
+    logger.info(f"--- [Report Generation Task] Started for History ID: {history_id} ---")
+    try:
+        from app.models import EvaluationHistory
+        history = db.session.get(EvaluationHistory, history_id)
+        if not history:
+            logger.error(f"[Report Generation Task] Failed: Could not find History with ID {history_id}.")
+            return
+
+        # Generate Markdown Report
+        markdown_path_str = export_report(
+            leaderboard_data=[history.evaluation_data, history.dimensions],
+            report_file_name=f"Report-{history.id}.md",
+            timestamp=history.timestamp
+        )
+        history.markdown_report_path = markdown_path_str
+        db.session.commit()
+        logger.info(f"[Report Generation Task] Markdown report generated and path saved for History ID: {history_id}.")
+
+        # Convert to PDF
+        pdf_path = Path(markdown_path_str).with_suffix('.pdf')
+        if convert_markdown_to_pdf(markdown_path_str, str(pdf_path)):
+            history.pdf_report_path = str(pdf_path)
+            db.session.commit()
+            logger.info(f"[Report Generation Task] PDF report generated and path saved for History ID: {history_id}.")
+        else:
+            logger.error(f"[Report Generation Task] Failed to convert markdown to PDF for History ID: {history_id}.")
+
+    except Exception as e:
+        logger.error(f"[Report Generation Task] Error processing history ID {history_id}: {e}", exc_info=True)

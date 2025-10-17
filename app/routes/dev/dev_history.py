@@ -7,6 +7,8 @@ from app.core.utils import generate_leaderboard_data
 from app.routes.dev.auth import admin_required
 from flask_login import login_required
 
+from app.core.tasks import generate_and_save_reports
+
 dev_history_bp = Blueprint('dev_history', __name__, url_prefix='/dev/history')
 logger = logging.getLogger('dev_history_routes')
 
@@ -83,6 +85,8 @@ def save_current_data_to_history():
         
         db.session.add(history_record)
         db.session.commit()
+
+        generate_and_save_reports.delay(history_record.id)
         
         flash(f'成功保存当前评估数据到历史记录！包含 {len(current_data["leaderboard"])} 个模型的数据。', 'success')
         logger.info(f"Successfully saved current evaluation data to history with {len(current_data['leaderboard'])} models")

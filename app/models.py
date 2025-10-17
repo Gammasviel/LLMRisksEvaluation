@@ -102,6 +102,8 @@ class EvaluationHistory(db.Model):
     evaluation_data = db.Column(JSON, nullable=False)
     
     extra_info = db.Column(JSON, nullable=True)
+    markdown_report_path = db.Column(db.String(255), nullable=True)
+    pdf_report_path = db.Column(db.String(255), nullable=True)
     
     @property
     def date_for_grouping(self):

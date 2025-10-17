@@ -6,7 +6,9 @@ from datetime import datetime
 from pathlib import Path
 
 from app.core.llm import clients
-from app.core.utils import generate_leaderboard_data
+from app.core.utils import generate_leaderboard_data, convert_markdown_to_pdf
+from app.models import EvaluationHistory
+from app.extensions import db
 
 logger = logging.getLogger('report_export')
 
@@ -149,14 +151,6 @@ def export_report(leaderboard_data: list = None, report_file_name: str = None, t
 
     report_file_path = report_path / report_file_name
     
-    if report_file_path.exists():
-        i = 0
-        base_name, file_extension = report_file_name.rsplit('.', 1)
-        while report_file_path.exists():
-            i += 1
-            report_file_path = report_path / f"{base_name} ({i}).{file_extension}"
-            
-    
     if timestamp is None:
         timestamp = datetime.now()
         
@@ -181,13 +175,14 @@ def export_report(leaderboard_data: list = None, report_file_name: str = None, t
         overall_analysis_text=overall_analysis_text,
         dimension_analysis_text=dimension_analysis_text,
         question_type_analysis_text=question_type_analysis_text,
-        model_performance_chart_b64=model_performance_chart_b64,
-        quadrant_chart_b64=quadrant_chart_b64,
-        dimension_comparison_chart_b64=dimension_comparison_chart_b64,
-        question_type_chart_b64=question_type_chart_b64,
         compact_timestamp=compact_timestamp,
         full_timestamp=full_timestamp
     )
+
+    report_content = report_content.replace('__MODEL_PERFORMANCE_CHART__', f'![模型综合性能分析](data:image/png;base64,{model_performance_chart_b64}){{ width=80% }}')
+    report_content = report_content.replace('__QUADRANT_CHART__', f'![安全管制策略象限分析](data:image/png;base64,{quadrant_chart_b64}){{ width=80% }}')
+    report_content = report_content.replace('__DIMENSION_COMPARISON_CHART__', f'![各模型维度平均分对比](data:image/png;base64,{dimension_comparison_chart_b64}){{ width=80% }}')
+    report_content = report_content.replace('__QUESTION_TYPE_CHART__', f'![各模型题型分析](data:image/png;base64,{question_type_chart_b64}){{ width=80% }}')
 
     with open(report_file_path, 'w', encoding='utf-8') as f:
         f.write(report_content)
@@ -195,38 +190,38 @@ def export_report(leaderboard_data: list = None, report_file_name: str = None, t
     logger.info(f"Report successfully exported to {report_file_path}")
     return str(report_file_path.resolve())
 
-class ReportExport:
-    @staticmethod
-    def generate_export_file(history_id):
-        from app.models import EvaluationHistory
-        history = EvaluationHistory.query.get(history_id)
-        if not history:
-            raise Exception("EvaluationHistory not found")
+def get_or_generate_report(history_id):
+    history = EvaluationHistory.query.get_or_404(history_id)
 
-        leaderboard_data = history.evaluation_data
-        dimension_metadata = history.dimensions
-        
-        report_file_name = f"Report {history.timestamp.strftime('%Y-%m-%d %H-%M-%S')}.md"
+    if history.pdf_report_path and os.path.exists(history.pdf_report_path):
+        logger.info(f"PDF report for history {history_id} already exists. Sending file.")
+        return history.pdf_report_path
 
-        report_path = export_report(
-            leaderboard_data=[leaderboard_data, dimension_metadata],
-            report_file_name=report_file_name,
-            timestamp=history.timestamp
-        )
-        return report_path
+    if history.markdown_report_path and os.path.exists(history.markdown_report_path):
+        logger.info(f"Markdown report for history {history_id} exists. Converting to PDF.")
+        pdf_path = Path(history.markdown_report_path).with_suffix('.pdf')
+        if convert_markdown_to_pdf(history.markdown_report_path, str(pdf_path)):
+            history.pdf_report_path = str(pdf_path)
+            db.session.commit()
+            return str(pdf_path)
+        else:
+            logger.error(f"Failed to convert markdown to PDF for history {history_id}.")
+            return None
 
-    @staticmethod
-    def generate_current_leaderboard_export():
-        from datetime import datetime
-        leaderboard_data_map = generate_leaderboard_data()
-        leaderboard_data = leaderboard_data_map["leaderboard"]
-        dimension_metadata = leaderboard_data_map["l1_dimensions"]
-        
-        report_file_name = f"Leaderboard Report {datetime.now().strftime('%Y-%m-%d %H-%M-%S')}.md"
+    logger.info(f"No report found for history {history_id}. Generating new report.")
+    markdown_path_str = export_report(
+        leaderboard_data=[history.evaluation_data, history.dimensions],
+        report_file_name=f"Report-{history.id}.md",
+        timestamp=history.timestamp
+    )
+    history.markdown_report_path = markdown_path_str
+    db.session.commit()
 
-        report_path = export_report(
-            leaderboard_data=[leaderboard_data, dimension_metadata],
-            report_file_name=report_file_name,
-            timestamp=datetime.now()
-        )
-        return report_path
+    pdf_path = Path(markdown_path_str).with_suffix('.pdf')
+    if convert_markdown_to_pdf(markdown_path_str, str(pdf_path)):
+        history.pdf_report_path = str(pdf_path)
+        db.session.commit()
+        return str(pdf_path)
+    else:
+        logger.error(f"Failed to convert markdown to PDF for history {history_id}.")
+        return None

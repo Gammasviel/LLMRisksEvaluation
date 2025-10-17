@@ -283,3 +283,24 @@ def generate_leaderboard_data(
             model_data['bias_analysis_data'] = []
 
     return {'leaderboard': leaderboard_data, 'l1_dimensions': l1_dims}
+
+import subprocess
+
+def convert_markdown_to_pdf(markdown_path: str, pdf_path: str) -> bool:
+    """Converts a Markdown file to a PDF using pandoc."""
+    logger = logging.getLogger('utils.convert_markdown_to_pdf')
+    try:
+        subprocess.run(
+            ['pandoc', '-f', 'markdown+hard_line_breaks', markdown_path, '-o', pdf_path, '--pdf-engine=xelatex', '-V', 'mainfont=Noto Sans CJK SC', '-V', 'CJKmainfont=Noto Sans CJK SC', '-V', 'geometry:top=2cm, left=2cm, right=2cm, bottom=2cm'],
+            check=True,
+            capture_output=True,
+            text=True
+        )
+        logger.info(f"Successfully converted {markdown_path} to {pdf_path}")
+        return True
+    except FileNotFoundError:
+        logger.error("Pandoc not found. Please ensure pandoc is installed and in your PATH.")
+        return False
+    except subprocess.CalledProcessError as e:
+        logger.error(f"Pandoc error during conversion of {markdown_path}: {e.stderr}")
+        return False
